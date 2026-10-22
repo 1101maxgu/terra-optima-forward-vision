@@ -3,6 +3,7 @@
 // without touching components. Datasets are isolated: 'sample' never mixes with 'mine'.
 import type { FarmData, IrrigationEvent, Sensor, SensorReading, Zone } from '../types'
 import { buildSampleData } from './sampleDataset'
+import { apiRepository } from './apiRepo'
 
 export type Dataset = 'sample' | 'mine'
 
@@ -112,6 +113,7 @@ export function resetSample() {
 }
 
 export function createRepository(dataset: Dataset): FarmRepository {
-  // Backend switch point: when the HTTP API is configured, return apiRepository(dataset) here.
+  // Backend switch point: the farmer's own data goes to the HTTP API when it is configured; sample stays local.
+  if (import.meta.env.VITE_API_URL && dataset === 'mine') return apiRepository(dataset)
   return localRepository(dataset)
 }

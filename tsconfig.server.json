@@ -1,0 +1,19 @@
+{
+  // Server code (api/, server/) runs as native Node ESM on Vercel, so relative imports
+  // must carry explicit .js extensions; NodeNext resolution enforces that at type-check time.
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM"],
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "strict": true,
+    "noEmit": true,
+    "skipLibCheck": true,
+    "isolatedModules": true,
+    "verbatimModuleSyntax": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "types": ["node"]
+  },
+  "include": ["api", "server"]
+}

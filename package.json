@@ -7,21 +7,27 @@
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
-    "test": "vitest run"
+    "test": "vitest run",
+    "typecheck:server": "tsc -p tsconfig.server.json"
   },
   "dependencies": {
     "@turf/area": "^7.4.0",
     "@turf/boolean-point-in-polygon": "^7.4.0",
     "@turf/kinks": "^7.4.0",
+    "jose": "^6.2.13",
     "lucide-react": "^1.61.0",
     "maplibre-gl": "^6.15.0",
+    "postgres": "^3.4.9",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
     "recharts": "^3.10.1",
     "terra-draw": "^1.38.0",
-    "terra-draw-maplibre-gl-adapter": "^1.5.0"
+    "terra-draw-maplibre-gl-adapter": "^1.5.0",
+    "zod": "^4.6.7"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "^0.5.11",
+    "@electric-sql/pglite-socket": "^0.2.14",
     "@tailwindcss/vite": "^4.3.3",
     "@types/node": "^26.6.5",
     "@types/react": "^19.3.0",
