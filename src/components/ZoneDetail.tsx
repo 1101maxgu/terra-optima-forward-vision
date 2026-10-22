@@ -1,5 +1,6 @@
 import { CROPS } from '../data/crops'
 import { SOILS } from '../data/soils'
+import { splitSessions } from '../engine/irrigation'
 import { useFarm } from '../state/farmStore'
 import MoistureGauge from './MoistureGauge'
 import ProvenanceBadge from './ProvenanceBadge'
@@ -13,6 +14,7 @@ export default function ZoneDetail() {
   const soil = SOILS[zone.soilId]
   const moisture = overrides[zone.id]?.moisture ?? latestReading(zone.id).moisture
   const irrigating = rec.status === 'irrigate-now' || rec.status === 'irrigate-soon'
+  const split = splitSessions(rec.grossMm, zone.areaM2)
 
   return (
     <section aria-labelledby="detail-h" className="flex flex-col gap-5 rounded-xl border border-line bg-surface p-6">
@@ -43,6 +45,13 @@ export default function ZoneDetail() {
       </div>
 
       <p className="text-lg leading-relaxed">{rec.summary}</p>
+
+      {irrigating && split.sessions > 1 && (
+        <p className="rounded-lg border border-water bg-water-soft px-4 py-3 text-ink">
+          <span className="font-semibold">Split it up:</span> {split.sessions} sessions of about {split.mmEach} mm ({litres(split.litresEach)} each),
+          spread over 2 days, so water soaks in instead of running off.
+        </p>
+      )}
 
       <div>
         <MoistureGauge current={moisture} wp={soil.wiltingPoint} refill={rec.refillMoisture} fc={soil.fieldCapacity} />

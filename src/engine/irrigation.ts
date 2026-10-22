@@ -22,6 +22,15 @@ export const DEFAULT_ET0_MM = 4.5
 
 const HORIZON_DAYS = 2
 
+/** Largest single irrigation event we suggest (mm); bigger totals are split to limit runoff and deep drainage. */
+export const MAX_SESSION_MM = 20
+
+/** Split a gross application depth into evenly sized sessions. */
+export function splitSessions(grossMm: number, areaM2: number) {
+  const sessions = Math.max(1, Math.ceil(grossMm / MAX_SESSION_MM))
+  return { sessions, mmEach: Math.round((grossMm / sessions) * 10) / 10, litresEach: r10((grossMm / sessions) * areaM2) }
+}
+
 /** Effective rainfall: light showers (< 3 mm) mostly evaporate; otherwise ~80% reaches the root zone. */
 export const effectiveRain = (r: number): number => (r < 3 ? 0 : 0.8 * r)
 
@@ -122,7 +131,7 @@ export function recommend(
   const who = `${zone.name} (${crop.name.toLowerCase()}) is at ${pct(theta)} moisture`
   const rainClause = rainEff > 0 ? `only about ${rainR} mm of rain is forecast` : 'no meaningful rain is forecast'
   const summary = {
-    'irrigate-now': `${who}, below the ${pct(refill)} refill point, and ${rainClause} — apply about ${fmtL(litres)} L today.`,
+    'irrigate-now': `${who}, below the ${pct(refill)} refill point, and ${rainClause} — apply about ${fmtL(litres)} L.`,
     'irrigate-soon': `${who}, above the ${pct(refill)} refill point, but crop water use over the next 48 h will push it past — plan about ${fmtL(litres)} L within 24–48 h.`,
     'skip-rain': `${who}; about ${rainR} mm of rain forecast in the next 48 h should cover crop water use — skip watering and recheck after the rain.`,
     ok: `${who}, comfortably above the ${pct(refill)} refill point — no watering needed for the next 48 h.`,

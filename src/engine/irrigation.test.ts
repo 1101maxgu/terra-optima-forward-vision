@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { Reading, WeatherDay, Zone } from '../types'
-import { EFFICIENCY, recommend, simulateWater } from './irrigation'
+import { EFFICIENCY, recommend, simulateWater, splitSessions } from './irrigation'
 
 // Loam: FC 0.30, WP 0.13. Tomato: Kc 1.15, root 700 mm, p 0.40.
 // TAW = 0.17 × 700 = 119 mm, RAW = 0.40 × 119 = 47.6 mm, refill θ = 0.30 − 47.6/700 = 0.232.
@@ -114,4 +114,9 @@ describe('simulateWater', () => {
     expect(Number.isFinite(c.reductionPct)).toBe(true)
     expect(c.daily.every((d) => Number.isFinite(d.moisture))).toBe(true)
   })
+})
+
+it('splitSessions caps each session at 20 mm', () => {
+  expect(splitSessions(86, 2000)).toEqual({ sessions: 5, mmEach: 17.2, litresEach: 34400 })
+  expect(splitSessions(12, 100).sessions).toBe(1)
 })

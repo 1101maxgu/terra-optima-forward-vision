@@ -4,3 +4,5 @@ dist
 *.local
 .claude/worktrees
 .playwright-mcp
+.vercel
+.env*
