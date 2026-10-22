@@ -218,8 +218,9 @@ function useFarmState() {
     },
     deleteSensor: (id: string) => run(repo.deleteSensor(id)),
 
-    addManualReading: (zoneId: string, moisturePercent: number, soilTemperatureC?: number) =>
-      run(repo.addReading({ id: newId(), sensorId: null, zoneId, timestamp: new Date().toISOString(), soilMoisturePercent: moisturePercent, soilTemperatureC, source: 'manual' })),
+    /** Manual reading for a zone; pass sensorId to record it against a manual sensor. */
+    addManualReading: (zoneId: string, moisturePercent: number, soilTemperatureC?: number, sensorId: string | null = null) =>
+      run(repo.addReading({ id: newId(), sensorId, zoneId, timestamp: new Date().toISOString(), soilMoisturePercent: moisturePercent, soilTemperatureC, source: 'manual' })),
     /** CSV rows (engine-shaped) become normalized readings with source 'csv'. */
     importReadings: async (rows: Reading[]) => {
       for (const r of rows)
