@@ -1,5 +1,8 @@
 @import 'tailwindcss';
 
+/* `present:` variant — active while presentation mode puts .present on <html>. */
+@custom-variant present (&:where(.present, .present *));
+
 /* Shared design tokens (frozen names; Agent B may tune values, not rename).
    Use as Tailwind classes: bg-paper, text-ink, bg-leaf, text-water, border-line, ... */
 @theme {
@@ -21,9 +24,46 @@
   /* Event accents (Enactus SFU Forward Vision) — use sparingly */
   --color-ember: #ef5b25;
   --color-navy: #0b3d7a;
+  --color-navy-soft: #e3eaf5;
+
+  /* Offline-safe system stacks (no network fonts). */
+  --font-sans: ui-sans-serif, system-ui, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+  --font-serif: 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, ui-serif, serif;
+  --font-mono: ui-monospace, 'Cascadia Mono', 'SF Mono', Consolas, monospace;
+}
+
+html {
+  font-size: 16px;
+}
+/* Presentation mode: everything is rem-based, so one root bump scales the whole UI for the projector. */
+html.present {
+  font-size: 19px;
 }
 
 body {
   background: var(--color-paper);
   color: var(--color-ink);
+  font-family: var(--font-sans);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+:focus-visible {
+  outline: 3px solid var(--color-water);
+  outline-offset: 2px;
+}
+
+input[type='range'] {
+  accent-color: var(--color-leaf);
+  height: 1.75rem;
+  cursor: pointer;
+}
+
+@layer components {
+  .btn-primary {
+    @apply rounded-md bg-ink px-4 py-2 font-semibold text-surface transition hover:bg-leaf active:scale-[0.98];
+  }
+  .btn-secondary {
+    @apply rounded-md border border-line bg-surface px-3 py-2 font-semibold text-ink transition hover:border-ink active:scale-[0.98];
+  }
 }
