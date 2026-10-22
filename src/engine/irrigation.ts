@@ -50,8 +50,8 @@ export function recommend(
 ): Recommendation {
   const crop = CROPS[zone.cropId]
   const soil = SOILS[zone.soilId]
-  const eff = EFFICIENCY[zone.method]
-  const zr = crop.rootDepthMm
+  const eff = zone.efficiency ?? EFFICIENCY[zone.method]
+  const zr = zone.rootDepthMm ?? crop.rootDepthMm
   const theta = overrides.moisture ?? reading.moisture
 
   const taw = (soil.fieldCapacity - soil.wiltingPoint) * zr
@@ -163,8 +163,8 @@ export function simulateWater(
 ): WaterComparison {
   const crop = CROPS[zone.cropId]
   const soil = SOILS[zone.soilId]
-  const eff = EFFICIENCY[zone.method]
-  const zr = crop.rootDepthMm
+  const eff = zone.efficiency ?? EFFICIENCY[zone.method]
+  const zr = zone.rootDepthMm ?? crop.rootDepthMm
   const taw = (soil.fieldCapacity - soil.wiltingPoint) * zr
   const days = weather.slice(0, 14)
 

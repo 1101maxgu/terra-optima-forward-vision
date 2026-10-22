@@ -19,6 +19,14 @@ export const CROPS: Record<CropId, Crop> = {
     p: 0.3,
     source: 'FAO-56 (Allen et al. 1998): Kc mid 1.00 (Table 12); root depth 0.3 m, low end of 0.3–0.5 m, and p 0.30 (Table 22).',
   },
+  strawberry: {
+    id: 'strawberry',
+    name: 'Strawberries',
+    kc: 0.85,
+    rootDepthMm: 200,
+    p: 0.2,
+    source: 'FAO-56 (Allen et al. 1998): Kc mid 0.85 (Table 12); root depth 0.2 m, low end of 0.2–0.3 m, and p 0.20 (Table 22). To be verified for BC day-neutral varieties.',
+  },
   blueberry: {
     id: 'blueberry',
     name: 'Blueberries',

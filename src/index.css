@@ -21,6 +21,13 @@
   --color-alert: #b42318;
   --color-alert-soft: #fde8e6;
 
+  /* v2 app shell: dark forest-green navigation */
+  --color-forest: #123a2b;
+  --color-forest-2: #1c5040;
+  --color-forest-ink: #d9eadf;
+  --color-stale: #6b7470;
+  --color-stale-soft: #eceeea;
+
   /* Event accents (Enactus SFU Forward Vision) — use sparingly */
   --color-ember: #ef5b25;
   --color-navy: #0b3d7a;

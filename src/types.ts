@@ -3,7 +3,7 @@
 /** Where a displayed number came from. Impact numbers are only ever 'projected'. */
 export type Provenance = 'measured' | 'live-weather' | 'simulated' | 'estimated' | 'projected'
 
-export type CropId = 'tomato' | 'lettuce' | 'blueberry'
+export type CropId = 'tomato' | 'lettuce' | 'blueberry' | 'strawberry'
 export type SoilId = 'sandy-loam' | 'loam' | 'silt-loam'
 export type IrrigationMethod = 'drip' | 'sprinkler'
 
@@ -31,6 +31,20 @@ export interface Zone {
   soilId: SoilId
   method: IrrigationMethod
   areaM2: number
+  // Optional (v2). Legacy zones without a boundary keep working ("Map boundary not set").
+  farmId?: string
+  boundary?: GeoPolygon | null
+  rootDepthMm?: number // overrides crop default
+  efficiency?: number // overrides method default (0–1)
+  notes?: string
+  createdAt?: string
+  updatedAt?: string
+}
+
+/** GeoJSON Polygon, [lon, lat] order, first ring is the outer boundary and is closed. */
+export interface GeoPolygon {
+  type: 'Polygon'
+  coordinates: [number, number][][]
 }
 
 export interface Reading {
@@ -104,11 +118,69 @@ export interface WaterComparison {
 }
 
 export interface Farm {
+  id?: string
   name: string
   location: string
   lat: number
   lon: number
   zones: Zone[]
+}
+
+// ---------- v2: sensors, readings, irrigation events ----------
+
+export type SensorType = 'lorawan' | 'esp32' | 'manual'
+export type LorawanProvider = 'ttn' | 'chirpstack'
+export type ReadingSource = 'lorawan' | 'esp32' | 'manual' | 'csv' | 'sample'
+
+export interface Sensor {
+  id: string
+  farmId: string
+  name: string // farmer-facing name, e.g. "TTN-001"
+  deviceId: string // provider device id / ESP32 claim id
+  type: SensorType
+  provider?: LorawanProvider
+  depthCm: number
+  zoneId: string | null // explicit assignment; the map never reassigns
+  lat?: number
+  lon?: number
+  batteryPercent?: number
+  lastSeen?: string // ISO
+  createdAt: string
+}
+
+/** Normalized reading shape shared by all sources (matches the backend table). */
+export interface SensorReading {
+  id: string
+  sensorId: string | null // null for manual readings not tied to a device
+  zoneId: string
+  timestamp: string // ISO
+  soilMoisturePercent: number // 0–100 volumetric
+  soilTemperatureC?: number
+  depthCm?: number
+  batteryPercent?: number
+  source: ReadingSource
+}
+
+export interface IrrigationEvent {
+  id: string
+  zoneId: string
+  timestamp: string
+  mm: number
+  litres: number
+  note?: string
+  source?: 'manual' | 'sample'
+}
+
+export type Freshness = 'fresh' | 'stale' | 'missing'
+/** Plain-language status shown to farmers. */
+export type FarmerStatus = 'water-today' | 'water-soon' | 'no-water' | 'check-sensor'
+
+export interface FarmData {
+  farm: Required<Pick<Farm, 'id' | 'name' | 'location' | 'lat' | 'lon'>>
+  zones: Zone[]
+  sensors: Sensor[]
+  readings: SensorReading[]
+  events: IrrigationEvent[]
 }
 
 export interface CsvResult {

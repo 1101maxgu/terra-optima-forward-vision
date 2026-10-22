@@ -9,9 +9,9 @@ export const PRESETS: { label: string; o: ScenarioOverrides }[] = [
   { label: 'Saturated soil', o: { moisture: 0.4 } },
 ]
 
-export default function ScenarioControls() {
-  const { zones, selectedZoneId, overrides, latestReading, weather, setOverride, updateZone, applyPresetToAll, clearOverrides } = useFarm()
-  const zone = zones.find((z) => z.id === selectedZoneId) ?? zones[0]
+export default function ScenarioControls({ zoneId }: { zoneId: string }) {
+  const { zones, overrides, latestReading, weather, setOverride, updateZone, applyPresetToAll, clearOverrides } = useFarm()
+  const zone = zones.find((z) => z.id === zoneId) ?? zones[0]
   const ov = overrides[zone.id] ?? {}
   const baseRain = weather.days.slice(0, 2).reduce((s, d) => s + d.rainMm, 0)
   const baseEt0 = weather.days[0]?.et0Mm ?? 0
@@ -44,7 +44,7 @@ export default function ScenarioControls() {
         max={45}
         step={1}
         unit="%"
-        value={Math.round((ov.moisture ?? latestReading(zone.id).moisture) * 100)}
+        value={Math.round((ov.moisture ?? latestReading(zone.id)?.moisture ?? 0.25) * 100)}
         overridden={ov.moisture !== undefined}
         onChange={(v) => setOverride(zone.id, { moisture: v / 100 })}
       />
@@ -87,7 +87,7 @@ export default function ScenarioControls() {
 
       <div className="flex items-center justify-between text-sm">
         <span className="text-muted">{anyOverride ? 'Scenario values are simulated.' : 'Showing sample readings and forecast.'}</span>
-        <button type="button" onClick={clearOverrides} disabled={!anyOverride} className="font-medium text-water underline underline-offset-4 disabled:text-muted disabled:no-underline">
+        <button type="button" onClick={() => clearOverrides()} disabled={!anyOverride} className="font-medium text-water underline underline-offset-4 disabled:text-muted disabled:no-underline">
           Clear overrides
         </button>
       </div>
