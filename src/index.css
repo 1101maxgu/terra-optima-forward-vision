@@ -1,8 +1,5 @@
 @import 'tailwindcss';
 
-/* `present:` variant — active while presentation mode puts .present on <html>. */
-@custom-variant present (&:where(.present, .present *));
-
 /* Shared design tokens (frozen names; Agent B may tune values, not rename).
    Use as Tailwind classes: bg-paper, text-ink, bg-leaf, text-water, border-line, ... */
 @theme {

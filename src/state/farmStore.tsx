@@ -2,20 +2,17 @@
 // Persistence goes through FarmRepository (src/data/repo.ts); this file holds derived state.
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
 import type {
-  FarmData, FarmerStatus, FixedSchedule, Freshness, IrrigationEvent, Reading, Recommendation,
-  ScenarioOverrides, Sensor, SensorReading, WaterComparison, Weather, Zone,
+  FarmData, FarmerStatus, Freshness, IrrigationEvent, Reading, Recommendation, Sensor, SensorReading, Weather, Zone,
 } from '../types'
 import sampleWeather from '../data/sampleWeather.json'
 import { getWeather } from '../services/weather'
-import { recommend, simulateWater } from '../engine/irrigation'
-import { SOILS } from '../data/soils'
+import { recommend } from '../engine/irrigation'
 import { createRepository, newId, resetSample, type Dataset } from '../data/repo'
 
 export type WeatherMode = 'sample' | 'live'
 export type SensorState = 'online' | 'offline' | 'never'
 
 const BUNDLED: Weather = { days: sampleWeather.days, source: 'bundled', provenance: 'simulated' }
-const DEFAULT_SCHEDULE: FixedSchedule = { mmPerEvent: 15, eventsPerWeek: 3 }
 const H = 3600_000
 /** Device readings: fresh ≤ 3 h, stale ≤ 24 h. Manual/CSV readings: fresh ≤ 24 h, stale ≤ 72 h. */
 const WINDOWS = { device: [3 * H, 24 * H], manual: [24 * H, 72 * H] } as const
@@ -24,7 +21,7 @@ const isManual = (r: Pick<SensorReading, 'source'>) => r.source === 'manual' || 
 export interface ZoneStatus {
   status: FarmerStatus
   freshness: Freshness
-  moisturePct: number | null // shown value (override wins)
+  moisturePct: number | null
   soilTempC: number | null
   lastUpdate: string | null
   rec?: Recommendation // undefined when there is no reading at all
@@ -35,15 +32,14 @@ const UI_KEY = 'geoviva:ui:v2'
 interface UiPrefs {
   dataset: Dataset
   weatherMode: WeatherMode
-  schedule: FixedSchedule
-  overrides: Record<string, ScenarioOverrides>
-  presentation: boolean
 }
-const UI_DEFAULTS: UiPrefs = { dataset: 'sample', weatherMode: 'sample', schedule: DEFAULT_SCHEDULE, overrides: {}, presentation: false }
+const UI_DEFAULTS: UiPrefs = { dataset: 'sample', weatherMode: 'sample' }
 function loadUi(): UiPrefs {
   try {
     const raw = localStorage.getItem(UI_KEY)
-    return raw ? { ...UI_DEFAULTS, ...JSON.parse(raw) } : UI_DEFAULTS
+    const p = raw ? JSON.parse(raw) : {}
+    // Only known keys: older builds stored demo overrides here, which must not leak into statuses.
+    return { dataset: p.dataset === 'mine' ? 'mine' : 'sample', weatherMode: p.weatherMode === 'live' ? 'live' : 'sample' }
   } catch {
     return UI_DEFAULTS
   }
@@ -145,25 +141,20 @@ function useFarmState() {
     const out: Record<string, Recommendation> = {}
     for (const z of zones) {
       const zr = zoneReading[z.id]
-      const ov = ui.overrides[z.id]
-      if (zr || ov?.moisture !== undefined) {
-        const reading: Reading = zr?.reading ?? { zoneId: z.id, timestamp: new Date(now).toISOString(), moisture: ov!.moisture!, soilTempC: NaN, provenance: 'simulated' }
-        out[z.id] = recommend(z, reading, weather.days, ov)
-      }
+      if (zr) out[z.id] = recommend(z, zr.reading, weather.days)
     }
     return out
-  }, [zones, zoneReading, ui.overrides, weather, now])
+  }, [zones, zoneReading, weather])
 
   const zoneStatus = useCallback(
     (zoneId: string): ZoneStatus => {
       const zr = zoneReading[zoneId]
       const rec = recommendations[zoneId]
-      const ov = ui.overrides[zoneId]
-      const freshness: Freshness = ov?.moisture !== undefined ? 'fresh' : zr?.freshness ?? 'missing'
+      const freshness: Freshness = zr?.freshness ?? 'missing'
       const status: FarmerStatus = !rec || freshness !== 'fresh'
         ? 'check-sensor'
         : rec.status === 'irrigate-now' ? 'water-today' : rec.status === 'irrigate-soon' ? 'water-soon' : 'no-water'
-      const moisture = ov?.moisture ?? zr?.reading.moisture
+      const moisture = zr?.reading.moisture
       return {
         status, freshness, rec,
         moisturePct: moisture === undefined ? null : Math.round(moisture * 1000) / 10,
@@ -172,25 +163,13 @@ function useFarmState() {
         sensors: sensors.filter((s) => s.zoneId === zoneId),
       }
     },
-    [zoneReading, recommendations, ui.overrides, sensors],
+    [zoneReading, recommendations, sensors],
   )
 
   const sensorState = useCallback(
     (s: Sensor): SensorState => (!s.lastSeen ? 'never' : now - Date.parse(s.lastSeen) <= WINDOWS.device[0] ? 'online' : 'offline'),
     [now],
   )
-
-  // Strategy comparison: both runs start from the same well-watered soil (midway between
-  // refill point and field capacity), so GeoViva isn't charged for fixing today's deficit.
-  const comparisons = useMemo(() => {
-    const out: Record<string, WaterComparison> = {}
-    for (const z of zones) {
-      const soil = SOILS[z.soilId]
-      const refill = recommendations[z.id]?.refillMoisture ?? recommend(z, { zoneId: z.id, timestamp: '', moisture: soil.fieldCapacity, soilTempC: NaN, provenance: 'simulated' }, weather.days).refillMoisture
-      out[z.id] = simulateWater(z, (refill + soil.fieldCapacity) / 2, weather.days, ui.schedule)
-    }
-    return out
-  }, [zones, ui.schedule, weather, recommendations])
 
   const patchUi = (p: Partial<UiPrefs>) => setUi((s) => ({ ...s, ...p }))
   const farmId = data?.farm.id ?? 'my-farm'
@@ -207,7 +186,7 @@ function useFarmState() {
     loadError,
     reload,
     dataset: ui.dataset,
-    setDataset: (dataset: Dataset) => patchUi({ dataset, overrides: {} }),
+    setDataset: (dataset: Dataset) => patchUi({ dataset }),
     farm: data?.farm ?? { id: farmId, name: '', location: '', lat: 49.05, lon: -122.3 },
     updateFarm: (f: Partial<FarmData['farm']>) => run(repo.updateFarm({ ...data!.farm, ...f })),
     zones,
@@ -219,7 +198,6 @@ function useFarmState() {
     /** Engine-shaped current reading for a zone, or null if none. */
     latestReading: (zoneId: string): Reading | null => zoneReading[zoneId]?.reading ?? null,
     recommendations,
-    comparisons,
 
     createZone: (z: Omit<Zone, 'id' | 'farmId'>) => run(repo.saveZone({ ...z, id: newId(), farmId })),
     updateZone: (id: string, patch: Partial<Zone>) => {
@@ -250,26 +228,14 @@ function useFarmState() {
     },
     logIrrigation: (e: Omit<IrrigationEvent, 'id'>) => run(repo.addEvent({ ...e, id: newId(), source: 'manual' })),
 
-    // Weather and pitch/scenario tools
     weather,
     weatherMode: ui.weatherMode,
     weatherLabel: weather.source === 'bundled' ? sampleWeather.label : `Live forecast (${weather.source})`,
     setWeatherMode: (weatherMode: WeatherMode) => patchUi({ weatherMode }),
-    overrides: ui.overrides,
-    setOverride: (zoneId: string, o: ScenarioOverrides) =>
-      setUi((s) => ({ ...s, overrides: { ...s.overrides, [zoneId]: { ...s.overrides[zoneId], ...o } } })),
-    applyPresetToAll: (o: ScenarioOverrides) =>
-      setUi((s) => ({ ...s, overrides: Object.fromEntries(zones.map((z) => [z.id, { ...s.overrides[z.id], ...o }])) })),
-    clearOverrides: (zoneId?: string) =>
-      setUi((s) => ({ ...s, overrides: zoneId ? Object.fromEntries(Object.entries(s.overrides).filter(([k]) => k !== zoneId)) : {} })),
-    schedule: ui.schedule,
-    setSchedule: (schedule: FixedSchedule) => patchUi({ schedule }),
-    presentation: ui.presentation,
-    setPresentation: (presentation: boolean) => patchUi({ presentation }),
-    /** Regenerates the sample farm and clears demo overrides. Never touches the farmer's own data. */
+    /** Regenerates the sample farm. Never touches the farmer's own data. */
     resetDemo: () => {
       resetSample()
-      setUi((s) => ({ ...s, overrides: {}, schedule: DEFAULT_SCHEDULE, weatherMode: 'sample' }))
+      patchUi({ weatherMode: 'sample' })
       setEpoch((e) => e + 1)
     },
   }
