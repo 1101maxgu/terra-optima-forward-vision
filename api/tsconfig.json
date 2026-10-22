@@ -1,5 +1,7 @@
 {
-  // Vercel compiles api/ with the nearest tsconfig; use the server settings, not the browser ones.
+  // Vercel compiles api/ with the nearest tsconfig. It only transpiles, so skip ambient type packages here;
+  // full type-checking of api/ + server/ runs via `npm run typecheck:server` (tsconfig.server.json).
   "extends": "../tsconfig.server.json",
+  "compilerOptions": { "types": [] },
   "include": ["../api", "../server"]
 }
