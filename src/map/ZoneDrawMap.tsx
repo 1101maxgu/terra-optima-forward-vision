@@ -168,7 +168,13 @@ export default function ZoneDrawMap({ value, onChange, center, zoom, otherZones,
     return () => {
       map.off('click', onClick)
       vertexMarker.current?.remove()
-      draw.stop()
+      // On unmount the base map is removed first (its effect cleans up earlier), so Terra Draw's
+      // stop() hits missing sources. Nothing to clean up then — never let it crash the page.
+      try {
+        draw.stop()
+      } catch {
+        /* map already removed */
+      }
       drawRef.current = null
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

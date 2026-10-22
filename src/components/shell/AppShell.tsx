@@ -43,6 +43,9 @@ function FarmSwitcher() {
 }
 
 export default function AppShell({ path, children }: { path: string; children: ReactNode }) {
+  // Task flows (zone wizard, boundary editor) run full-screen on phones: their own sticky Back/Next bar
+  // replaces the bottom nav, so it can't be covered (matches ref 10-mobile).
+  const taskFlow = path === '/zones/new' || path.endsWith('/boundary')
   return (
     <div className="min-h-dvh md:pl-64">
       <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:rounded focus:bg-surface focus:p-2">
@@ -75,13 +78,13 @@ export default function AppShell({ path, children }: { path: string; children: R
 
       <TopBar />
 
-      <main id="main" className="mx-auto w-full max-w-[1400px] px-4 pt-4 pb-28 sm:px-6 md:pb-10">
+      <main id="main" className={`mx-auto w-full max-w-[1400px] px-4 pt-4 sm:px-6 md:pb-10 ${taskFlow ? 'pb-0' : 'pb-28'}`}>
         {children}
       </main>
 
       <nav
         aria-label="Main"
-        className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-5 border-t border-line bg-surface pb-[env(safe-area-inset-bottom)] md:hidden"
+        className={`fixed inset-x-0 bottom-0 z-30 grid-cols-5 border-t border-line bg-surface pb-[env(safe-area-inset-bottom)] md:hidden ${taskFlow ? 'hidden' : 'grid'}`}
       >
         {MOBILE.map(({ href, label, Icon, also }) => {
           const on = isActive(path, href) || also.some((a) => isActive(path, a))

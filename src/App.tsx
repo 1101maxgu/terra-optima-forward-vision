@@ -10,6 +10,7 @@ import Sensors from './pages/Sensors'
 import Weather from './pages/Weather'
 import Reports from './pages/Reports'
 import Settings from './pages/Settings'
+import ErrorBoundary from './ui/ErrorBoundary'
 
 function Page({ segments }: { segments: string[] }) {
   const [a, b, c] = segments
@@ -51,7 +52,9 @@ export default function App() {
           <div className="h-80 rounded-2xl bg-stale-soft" />
         </div>
       ) : (
-        <Page segments={route.split('/').filter(Boolean)} />
+        <ErrorBoundary resetKey={route}>
+          <Page segments={route.split('/').filter(Boolean)} />
+        </ErrorBoundary>
       )}
     </AppShell>
   )

@@ -7,8 +7,9 @@ import { polygonAreaM2 } from '../map/geo'
 export const SAMPLE_FARM_ID = 'sample-farm'
 
 // Rectangles laid out in metres from a south-west origin, converted to lon/lat.
-const LON0 = -122.217
-const LAT0 = 49.04
+// Open field north of Hwy 1 (checked against satellite imagery so boundaries don't cross roads or buildings).
+const LON0 = -122.2183
+const LAT0 = 49.0435
 const M_PER_DEG_LAT = 111_200
 const M_PER_DEG_LON = 111_320 * Math.cos((LAT0 * Math.PI) / 180)
 function rect(x0: number, y0: number, x1: number, y1: number): GeoPolygon {

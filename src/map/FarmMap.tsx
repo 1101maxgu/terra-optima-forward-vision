@@ -133,7 +133,7 @@ export default function FarmMap(props: FarmMapProps) {
     const b = bounds(polys)
     const duration = fitted.current ? 600 : 0
     fitted.current = true
-    if (b) map.fitBounds(b, { padding: { top: 72, bottom: 40, left: 40, right: 56 }, maxZoom: 18, duration })
+    if (b) map.fitBounds(b, { padding: { top: 104, bottom: 40, left: 40, right: 64 }, maxZoom: 18, duration })
     else map.jumpTo({ center: cb.current.fallbackCenter, zoom: mapConfig.defaultZoom })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [map, fit, fit === 'selected' ? selectedZoneId : null, boundaryKey])

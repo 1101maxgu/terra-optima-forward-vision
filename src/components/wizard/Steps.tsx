@@ -86,7 +86,7 @@ export function StepDraw({ d, set }: StepProps) {
     )
   return (
     <div className="space-y-3">
-      <p className="text-muted">Tap each corner of the area, then tap the first corner to close it. A zone is a management area — it doesn't have to be a whole field.</p>
+      {/* The map shows the "tap the corners" instruction and the management-area note itself. */}
       <Suspense fallback={<MapSkeleton className={MAP_H} />}>
         <ZoneDrawMap className={MAP_H} value={initial} center={d.location.center} zoom={d.location.zoom} otherZones={zones}
           onChange={(boundary, _a, err) => { set({ boundary }); setError(err) }} />

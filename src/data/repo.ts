@@ -42,6 +42,9 @@ function shiftSample(data: FarmData, ms: number): FarmData {
 
 export function localRepository(dataset: Dataset): FarmRepository {
   let cache: FarmData | null = null
+  // Sample data: the moment its timestamps were last aligned to "now". Saving stores this (not the
+  // save time) so the next load shifts by exactly the time that really passed since loading.
+  let clockAt = Date.now()
 
   function read(): FarmData {
     if (cache) return cache
@@ -52,14 +55,16 @@ export function localRepository(dataset: Dataset): FarmRepository {
     } catch {
       stored = null
     }
-    if (!stored) cache = dataset === 'sample' ? buildSampleData() : structuredClone(MY_FARM)
-    else cache = dataset === 'sample' ? shiftSample(stored.data, Date.now() - stored.savedAt) : stored.data
+    clockAt = Date.now()
+    if (!stored) cache = dataset === 'sample' ? buildSampleData(clockAt) : structuredClone(MY_FARM)
+    else cache = dataset === 'sample' ? shiftSample(stored.data, clockAt - stored.savedAt) : stored.data
     return cache
   }
 
   // Throws if storage is unavailable/full so callers can show Retry and keep unsaved input.
   function write(next: FarmData) {
-    localStorage.setItem(key(dataset), JSON.stringify({ savedAt: Date.now(), data: next } satisfies Stored))
+    const savedAt = dataset === 'sample' ? clockAt : Date.now()
+    localStorage.setItem(key(dataset), JSON.stringify({ savedAt, data: next } satisfies Stored))
     cache = next
   }
 
