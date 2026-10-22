@@ -1,0 +1,5 @@
+{
+  // Vercel compiles api/ with the nearest tsconfig; use the server settings, not the browser ones.
+  "extends": "../tsconfig.server.json",
+  "include": ["../api", "../server"]
+}
