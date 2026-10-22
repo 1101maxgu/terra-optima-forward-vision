@@ -19,7 +19,7 @@ const DEFAULT_SCHEDULE: FixedSchedule = { mmPerEvent: 15, eventsPerWeek: 3 }
 const H = 3600_000
 /** Device readings: fresh ≤ 3 h, stale ≤ 24 h. Manual/CSV readings: fresh ≤ 24 h, stale ≤ 72 h. */
 const WINDOWS = { device: [3 * H, 24 * H], manual: [24 * H, 72 * H] } as const
-const isManual = (r: SensorReading) => r.source === 'manual' || r.source === 'csv'
+const isManual = (r: Pick<SensorReading, 'source'>) => r.source === 'manual' || r.source === 'csv'
 
 export interface ZoneStatus {
   status: FarmerStatus
@@ -49,7 +49,7 @@ function loadUi(): UiPrefs {
   }
 }
 
-function freshnessOf(r: SensorReading, now: number): Freshness {
+export function freshnessOf(r: Pick<SensorReading, 'timestamp' | 'source'>, now: number): Freshness {
   const age = now - Date.parse(r.timestamp)
   const [fresh, stale] = isManual(r) ? WINDOWS.manual : WINDOWS.device
   return age <= fresh ? 'fresh' : age <= stale ? 'stale' : 'missing'
