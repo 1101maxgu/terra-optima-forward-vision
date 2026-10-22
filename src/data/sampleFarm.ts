@@ -17,6 +17,6 @@ export const SAMPLE_FARM: Farm = {
 /** Latest simulated reading per zone. */
 export const SAMPLE_READINGS: Reading[] = [
   { zoneId: 'a', timestamp: '2026-10-21T07:00:00-07:00', moisture: 0.19, soilTempC: 14, provenance: 'simulated' },
-  { zoneId: 'b', timestamp: '2026-10-21T07:00:00-07:00', moisture: 0.17, soilTempC: 13, provenance: 'simulated' },
+  { zoneId: 'b', timestamp: '2026-10-21T07:00:00-07:00', moisture: 0.21, soilTempC: 13, provenance: 'simulated' },
   { zoneId: 'c', timestamp: '2026-10-21T07:00:00-07:00', moisture: 0.29, soilTempC: 12, provenance: 'simulated' },
 ]
