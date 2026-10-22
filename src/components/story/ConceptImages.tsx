@@ -11,13 +11,16 @@ export default function ConceptImages() {
   const [failed, setFailed] = useState<string[]>([])
   if (failed.length === IMAGES.length) return null
   return (
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    <div className="grid gap-4 md:grid-cols-2">
       {IMAGES.filter((img) => !failed.includes(img.file)).map((img) => (
-        <figure key={img.file} className="overflow-hidden rounded-lg border border-line bg-surface">
+        <figure
+          key={img.file}
+          className={`overflow-hidden rounded-lg border border-line bg-surface ${img.file === 'hero.png' ? 'md:col-span-2' : ''}`}
+        >
           <img
             src={`${import.meta.env.BASE_URL}concepts/${img.file}`}
             alt={img.alt}
-            className="aspect-video w-full object-cover"
+            className="h-auto w-full"
             onError={() => setFailed((f) => [...f, img.file])}
           />
           <figcaption className="px-3 py-2 text-xs text-muted">
