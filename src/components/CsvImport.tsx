@@ -20,8 +20,8 @@ export default function CsvImport() {
   }
 
   return (
-    <section aria-labelledby="csv-h" className="flex flex-col gap-3 rounded-xl border border-line bg-surface p-6">
-      <h2 id="csv-h" className="font-serif text-2xl tracking-tight">
+    <section aria-labelledby="csv-h" className="flex flex-col gap-3 rounded-2xl border border-line bg-surface p-4 sm:p-5">
+      <h2 id="csv-h" className="text-xl font-bold">
         Import sensor or manual readings
       </h2>
       <p className="text-muted">

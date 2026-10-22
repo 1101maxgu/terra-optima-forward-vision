@@ -6,7 +6,7 @@
 /* Shared design tokens (frozen names; Agent B may tune values, not rename).
    Use as Tailwind classes: bg-paper, text-ink, bg-leaf, text-water, border-line, ... */
 @theme {
-  --color-paper: #f6f4ec;
+  --color-paper: #f4f6f3;
   --color-surface: #ffffff;
   --color-ink: #17251f;
   --color-muted: #4f5d56;
@@ -68,9 +68,9 @@ input[type='range'] {
 
 @layer components {
   .btn-primary {
-    @apply rounded-md bg-ink px-4 py-2 font-semibold text-surface transition hover:bg-leaf active:scale-[0.98];
+    @apply rounded-xl bg-forest-2 px-4 py-2 font-semibold text-white transition hover:bg-forest active:scale-[0.98] disabled:opacity-60;
   }
   .btn-secondary {
-    @apply rounded-md border border-line bg-surface px-3 py-2 font-semibold text-ink transition hover:border-ink active:scale-[0.98];
+    @apply rounded-xl border border-line bg-surface px-3 py-2 font-semibold text-ink transition hover:border-forest active:scale-[0.98];
   }
 }
