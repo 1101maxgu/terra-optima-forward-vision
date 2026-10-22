@@ -1,1 +1,29 @@
 @import 'tailwindcss';
+
+/* Shared design tokens (frozen names; Agent B may tune values, not rename).
+   Use as Tailwind classes: bg-paper, text-ink, bg-leaf, text-water, border-line, ... */
+@theme {
+  --color-paper: #f6f4ec;
+  --color-surface: #ffffff;
+  --color-ink: #17251f;
+  --color-muted: #4f5d56;
+  --color-line: #d6dbd0;
+
+  --color-leaf: #23703f;
+  --color-leaf-soft: #e1f0e5;
+  --color-water: #0b6683;
+  --color-water-soft: #dcEEF4;
+  --color-sun: #9a5b00;
+  --color-sun-soft: #fbefd9;
+  --color-alert: #b42318;
+  --color-alert-soft: #fde8e6;
+
+  /* Event accents (Enactus SFU Forward Vision) — use sparingly */
+  --color-ember: #ef5b25;
+  --color-navy: #0b3d7a;
+}
+
+body {
+  background: var(--color-paper);
+  color: var(--color-ink);
+}
