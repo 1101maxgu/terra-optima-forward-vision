@@ -2,3 +2,5 @@ node_modules
 dist
 .vercel
 *.local
+.claude/worktrees
+.playwright-mcp

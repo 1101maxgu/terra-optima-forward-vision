@@ -56,11 +56,17 @@ function useFarmState() {
     if (state.weatherMode === 'live' && !liveWeather) getWeather(SAMPLE_FARM.lat, SAMPLE_FARM.lon).then(setLiveWeather)
   }, [state.weatherMode, liveWeather])
 
-  const weather = state.weatherMode === 'live' && liveWeather ? liveWeather : BUNDLED
+  // A cached forecast can start in the past; the engine treats days[0] as today.
+  const weather = useMemo(() => {
+    if (state.weatherMode !== 'live' || !liveWeather) return BUNDLED
+    const today = new Date().toLocaleDateString('en-CA')
+    const days = liveWeather.days.filter((d) => d.date >= today)
+    return days.length >= 2 ? { ...liveWeather, days } : BUNDLED
+  }, [state.weatherMode, liveWeather])
 
   const latest = useCallback(
     (zoneId: string) =>
-      state.readings.filter((r) => r.zoneId === zoneId).sort((a, b) => b.timestamp.localeCompare(a.timestamp))[0] ??
+      state.readings.filter((r) => r.zoneId === zoneId).sort((a, b) => Date.parse(b.timestamp) - Date.parse(a.timestamp))[0] ??
       SAMPLE_READINGS.find((r) => r.zoneId === zoneId)!,
     [state.readings],
   )
