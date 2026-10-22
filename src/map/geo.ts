@@ -58,3 +58,29 @@ export function formatArea(m2: number, unit: AreaUnit = m2 >= 5000 ? 'ha' : 'm2'
   if (unit === 'ac') return `${(m2 / 4046.856).toFixed(2)} ac`
   return `${Math.round(m2).toLocaleString('en-CA')} m²`
 }
+
+/** Chip text like "≈ 0.24 ha · 2,400 m²" — chosen unit first, a familiar second unit after. */
+export function areaChipText(m2: number, unit: AreaUnit): string {
+  const second: AreaUnit = unit === 'ha' ? 'm2' : 'ha'
+  return `≈ ${formatArea(m2, unit)} · ${formatArea(m2, second)}`
+}
+
+const round7 = (n: number) => Math.round(n * 1e7) / 1e7
+
+/**
+ * Turns a drawn ring (e.g. from Terra Draw; open or closed, any precision) into a clean GeoJSON Polygon:
+ * rounds to 7 decimals (~1 cm), drops consecutive duplicate corners and closes the ring.
+ * Returns null when fewer than 3 distinct corners remain.
+ */
+export function toGeoPolygon(ring: number[][]): GeoPolygon | null {
+  const pts: [number, number][] = []
+  for (const c of ring) {
+    const p: [number, number] = [round7(c[0]), round7(c[1])]
+    const last = pts[pts.length - 1]
+    if (!last || last[0] !== p[0] || last[1] !== p[1]) pts.push(p)
+  }
+  const [f, l] = [pts[0], pts[pts.length - 1]]
+  if (pts.length > 1 && f[0] === l[0] && f[1] === l[1]) pts.pop()
+  if (pts.length < 3) return null
+  return { type: 'Polygon', coordinates: [[...pts, [pts[0][0], pts[0][1]]]] }
+}
