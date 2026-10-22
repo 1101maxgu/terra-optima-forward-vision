@@ -1,15 +1,16 @@
-// PLACEHOLDER — Agent C refines. Shape is frozen.
+// Fictional demo farm. Shape is frozen (store imports SAMPLE_FARM / SAMPLE_READINGS).
 import type { Farm, Reading } from '../types'
 
+/** ~2-acre (8,100 m²) Fraser Valley market garden; ~1.6 acres cropped across 3 zones, rest is paths/wash-pack. */
 export const SAMPLE_FARM: Farm = {
-  name: 'Sample Farm',
-  location: 'Abbotsford, BC',
+  name: 'Riverbend Market Garden (fictional demo farm)',
+  location: 'Abbotsford, BC (Fraser Valley)',
   lat: 49.05,
   lon: -122.3,
   zones: [
-    { id: 'a', name: 'Zone A', cropId: 'tomato', soilId: 'loam', method: 'drip', areaM2: 400 },
-    { id: 'b', name: 'Zone B', cropId: 'lettuce', soilId: 'sandy-loam', method: 'sprinkler', areaM2: 250 },
-    { id: 'c', name: 'Zone C', cropId: 'blueberry', soilId: 'silt-loam', method: 'drip', areaM2: 350 },
+    { id: 'a', name: 'Zone A · Field tomatoes', cropId: 'tomato', soilId: 'loam', method: 'drip', areaM2: 2000 },
+    { id: 'b', name: 'Zone B · Salad lettuce', cropId: 'lettuce', soilId: 'sandy-loam', method: 'sprinkler', areaM2: 1400 },
+    { id: 'c', name: 'Zone C · Blueberries', cropId: 'blueberry', soilId: 'silt-loam', method: 'drip', areaM2: 3200 },
   ],
 }
 
