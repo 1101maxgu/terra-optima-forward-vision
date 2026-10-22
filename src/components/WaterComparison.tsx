@@ -47,7 +47,7 @@ export default function WaterComparison() {
         </h2>
         <span className="rounded-md bg-sun-soft px-2 py-1 text-sm font-semibold text-sun ring-1 ring-sun/30 ring-inset">Modelled — not validated</span>
         <ProvenanceBadge p="projected" />
-        <span className="w-full text-muted">14-day model, all zones, same weather. Baseline = your fixed schedule below.</span>
+        <span className="w-full text-muted">14-day model, all zones, same weather, both starting from well-watered soil. Baseline = your fixed schedule below.</span>
       </header>
 
       <div className="grid gap-4 sm:grid-cols-3">

@@ -5,6 +5,7 @@ import { SAMPLE_FARM, SAMPLE_READINGS } from '../data/sampleFarm'
 import sampleWeather from '../data/sampleWeather.json'
 import { getWeather } from '../services/weather'
 import { recommend, simulateWater } from '../engine/irrigation'
+import { SOILS } from '../data/soils'
 
 export type WeatherMode = 'sample' | 'live'
 
@@ -79,12 +80,14 @@ function useFarmState() {
 
   const comparisons = useMemo(() => {
     const out: Record<string, WaterComparison> = {}
+    // Strategy comparison: both runs start from the same well-watered soil (midway between
+    // refill point and field capacity), so GeoViva isn't charged for fixing today's deficit.
     for (const z of state.zones) {
-      const m = state.overrides[z.id]?.moisture ?? latest(z.id).moisture
-      out[z.id] = simulateWater(z, m, weather.days, state.schedule)
+      const start = (recommendations[z.id].refillMoisture + SOILS[z.soilId].fieldCapacity) / 2
+      out[z.id] = simulateWater(z, start, weather.days, state.schedule)
     }
     return out
-  }, [state.zones, state.overrides, state.schedule, weather, latest])
+  }, [state.zones, state.schedule, weather, recommendations])
 
   const patch = (p: Partial<Persisted>) => setState((s) => ({ ...s, ...p }))
 
@@ -111,7 +114,9 @@ function useFarmState() {
       setState((s) => ({ ...s, zones: s.zones.map((x) => (x.id === id ? { ...x, ...z } : x)) })),
     setSchedule: (schedule: FixedSchedule) => patch({ schedule }),
     setWeatherMode: (weatherMode: WeatherMode) => patch({ weatherMode }),
-    importReadings: (readings: Reading[]) => setState((s) => ({ ...s, readings: [...s.readings, ...readings] })),
+    // Imported measurements replace simulated readings, whatever their dates.
+    importReadings: (readings: Reading[]) =>
+      setState((s) => ({ ...s, readings: [...s.readings.filter((r) => r.provenance !== 'simulated'), ...readings] })),
     setPresentation: (presentation: boolean) => patch({ presentation }),
     resetDemo: () => {
       setState({ ...DEFAULTS, presentation: state.presentation })
