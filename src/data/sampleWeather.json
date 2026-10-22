@@ -1,19 +1,19 @@
 {
   "label": "Sample July fortnight, Fraser Valley (simulated)",
   "days": [
-    { "date": "2026-07-14", "tMaxC": 29, "tMinC": 14, "rainMm": 0, "et0Mm": 5.4 },
-    { "date": "2026-07-15", "tMaxC": 31, "tMinC": 15, "rainMm": 0, "et0Mm": 5.8 },
-    { "date": "2026-07-16", "tMaxC": 32, "tMinC": 16, "rainMm": 0, "et0Mm": 6.0 },
-    { "date": "2026-07-17", "tMaxC": 30, "tMinC": 15, "rainMm": 0, "et0Mm": 5.6 },
-    { "date": "2026-07-18", "tMaxC": 27, "tMinC": 14, "rainMm": 2, "et0Mm": 4.6 },
-    { "date": "2026-07-19", "tMaxC": 24, "tMinC": 13, "rainMm": 9, "et0Mm": 3.2 },
-    { "date": "2026-07-20", "tMaxC": 25, "tMinC": 12, "rainMm": 4, "et0Mm": 3.8 },
-    { "date": "2026-07-21", "tMaxC": 27, "tMinC": 13, "rainMm": 0, "et0Mm": 4.8 },
-    { "date": "2026-07-22", "tMaxC": 29, "tMinC": 14, "rainMm": 0, "et0Mm": 5.3 },
-    { "date": "2026-07-23", "tMaxC": 31, "tMinC": 15, "rainMm": 0, "et0Mm": 5.7 },
-    { "date": "2026-07-24", "tMaxC": 33, "tMinC": 17, "rainMm": 0, "et0Mm": 6.2 },
+    { "date": "2026-07-14", "tMaxC": 27, "tMinC": 13, "rainMm": 0, "et0Mm": 5.0 },
+    { "date": "2026-07-15", "tMaxC": 29, "tMinC": 14, "rainMm": 0, "et0Mm": 5.4 },
+    { "date": "2026-07-16", "tMaxC": 31, "tMinC": 15, "rainMm": 0, "et0Mm": 5.8 },
+    { "date": "2026-07-17", "tMaxC": 32, "tMinC": 16, "rainMm": 0, "et0Mm": 6.0 },
+    { "date": "2026-07-18", "tMaxC": 30, "tMinC": 15, "rainMm": 0, "et0Mm": 5.6 },
+    { "date": "2026-07-19", "tMaxC": 25, "tMinC": 14, "rainMm": 3, "et0Mm": 3.9 },
+    { "date": "2026-07-20", "tMaxC": 21, "tMinC": 13, "rainMm": 9, "et0Mm": 2.6 },
+    { "date": "2026-07-21", "tMaxC": 23, "tMinC": 12, "rainMm": 1, "et0Mm": 3.6 },
+    { "date": "2026-07-22", "tMaxC": 26, "tMinC": 12, "rainMm": 0, "et0Mm": 4.7 },
+    { "date": "2026-07-23", "tMaxC": 28, "tMinC": 13, "rainMm": 0, "et0Mm": 5.2 },
+    { "date": "2026-07-24", "tMaxC": 30, "tMinC": 14, "rainMm": 0, "et0Mm": 5.6 },
     { "date": "2026-07-25", "tMaxC": 32, "tMinC": 16, "rainMm": 0, "et0Mm": 6.0 },
-    { "date": "2026-07-26", "tMaxC": 28, "tMinC": 14, "rainMm": 6, "et0Mm": 4.2 },
-    { "date": "2026-07-27", "tMaxC": 26, "tMinC": 13, "rainMm": 0, "et0Mm": 4.5 }
+    { "date": "2026-07-26", "tMaxC": 31, "tMinC": 15, "rainMm": 0, "et0Mm": 5.8 },
+    { "date": "2026-07-27", "tMaxC": 28, "tMinC": 14, "rainMm": 0, "et0Mm": 5.1 }
   ]
 }
