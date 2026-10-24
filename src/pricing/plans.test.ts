@@ -46,6 +46,6 @@ it('monthly billing for own sensors with extras', () => {
 })
 
 it('limits grow with paid extra sensors', () => {
-  expect(limitsFor('free')).toMatchObject({ zones: 2, sensors: 1 })
-  expect(limitsFor('grower', 2)).toMatchObject({ zones: null, sensors: 5 })
+  expect(limitsFor('free')).toMatchObject({ zones: 2, sensors: 1, reportDays: 7 })
+  expect(limitsFor('grower', 2)).toMatchObject({ zones: null, sensors: 5, reportDays: 30 })
 })

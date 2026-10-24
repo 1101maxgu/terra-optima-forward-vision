@@ -14,6 +14,7 @@ export const FREE = {
   sensors: 1, // connected sensors (ours or third-party); manual readings and CSV are always free
   farms: 1,
   historyDays: 30,
+  reportDays: 7, // Reports page: last 7 days only
 }
 
 export const GROWER = {
@@ -21,6 +22,7 @@ export const GROWER = {
   yearly: 80, // 10 months' price: 2 months free
   sensorsIncluded: 3,
   historyDays: 365,
+  reportDays: 30,
 }
 
 export const EXTRA_SENSOR = { monthly: 3, yearly: 30 }
@@ -45,13 +47,14 @@ export interface Limits {
   zones: number | null // null = unlimited
   sensors: number
   historyDays: number
+  reportDays: number // longest Reports period
 }
 
 /** Limits for a plan; Grower's sensor allowance grows with paid extra sensors. */
 export function limitsFor(plan: PlanId, extraSensors = 0): Limits {
   return plan === 'free'
-    ? { zones: FREE.zones, sensors: FREE.sensors, historyDays: FREE.historyDays }
-    : { zones: null, sensors: GROWER.sensorsIncluded + Math.max(0, extraSensors), historyDays: GROWER.historyDays }
+    ? { zones: FREE.zones, sensors: FREE.sensors, historyDays: FREE.historyDays, reportDays: FREE.reportDays }
+    : { zones: null, sensors: GROWER.sensorsIncluded + Math.max(0, extraSensors), historyDays: GROWER.historyDays, reportDays: GROWER.reportDays }
 }
 
 export const needsGrower = (zones: number, sensors: number) => zones > FREE.zones || sensors > FREE.sensors
