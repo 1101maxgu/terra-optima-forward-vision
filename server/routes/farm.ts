@@ -4,6 +4,7 @@ import { randomUUID } from 'node:crypto'
 import { requireMember } from '../auth.js'
 import type { Ctx } from '../context.js'
 import type { Db } from '../db.js'
+import { assertCanAddSensors, assertCanAddZone, assertZoneWritable, planFor } from '../entitlements.js'
 import { polygonAreaM2 } from '../geo.js'
 import { HttpError, json, parse } from '../http.js'
 import {
@@ -36,13 +37,15 @@ export async function assertZone(db: Db, farmId: string, zoneId: string | null |
 }
 
 const DAY = 86_400_000
-function sinceParam(ctx: Ctx, defaultDays: number): string {
+/** Start of a read window: ?since=, else defaultDays back, never further back than the plan's history. */
+function sinceParam(ctx: Ctx, defaultDays: number, maxDays = 366): string {
   const raw = ctx.url.searchParams.get('since')
   const now = ctx.deps.now()
-  if (!raw) return new Date(now - defaultDays * DAY).toISOString()
+  const floor = now - maxDays * DAY
+  if (!raw) return new Date(Math.max(now - defaultDays * DAY, floor)).toISOString()
   const t = Date.parse(raw)
   if (!Number.isFinite(t)) throw new HttpError(400, 'invalid_since', 'since must be an ISO timestamp')
-  return new Date(Math.max(t, now - 366 * DAY)).toISOString()
+  return new Date(Math.max(t, floor)).toISOString()
 }
 
 // ---------- farms ----------
@@ -85,7 +88,8 @@ export async function getFarmData(ctx: Ctx) {
   const { db } = ctx.deps
   const farmId = ctx.params.farmId
   await requireMember(db, await ctx.user(), farmId, 'viewer')
-  const since = sinceParam(ctx, 14)
+  const { historyDays } = await planFor(db, farmId, ctx.deps.now())
+  const since = sinceParam(ctx, 14, historyDays)
   const [farm] = await db`select ${db.unsafe(FARM_COLS)} from farms where id = ${farmId}`
   const [zones, sensors, readings, events] = await Promise.all([
     db`select ${db.unsafe(ZONE_COLS)} from zones where farm_id = ${farmId} order by created_at`,
@@ -94,7 +98,7 @@ export async function getFarmData(ctx: Ctx) {
     db`select * from (select ${db.unsafe(READING_COLS)} from sensor_readings
          where farm_id = ${farmId} and zone_id is not null and timestamp >= ${since}
          order by timestamp desc limit 20000) r order by timestamp`,
-    db`select ${db.unsafe(EVENT_COLS)} from irrigation_events where farm_id = ${farmId} and timestamp >= ${sinceParam(ctx, 365)} order by timestamp`,
+    db`select ${db.unsafe(EVENT_COLS)} from irrigation_events where farm_id = ${farmId} and timestamp >= ${sinceParam(ctx, 365, historyDays)} order by timestamp`,
   ])
   return json(200, { farm, zones: cleanAll(zones), sensors: cleanAll(sensors), readings: cleanAll(readings), events: cleanAll(events) })
 }
@@ -121,6 +125,7 @@ export async function createZone(ctx: Ctx) {
   const farmId = ctx.params.farmId
   await requireMember(db, await ctx.user(), farmId, 'editor')
   const z = parse(zoneCreate, await ctx.body())
+  await assertCanAddZone(db, farmId, ctx.deps.now())
   const row = { id: z.id ?? randomUUID(), farm_id: farmId, ...zoneRow(z), boundary: z.boundary ? db.json(z.boundary) : null }
   const [out] = await db`insert into zones ${db(row)} returning ${db.unsafe(ZONE_COLS)}`
   return json(201, clean(out))
@@ -131,6 +136,7 @@ export async function patchZone(ctx: Ctx) {
   const { farmId, zoneId } = ctx.params
   await requireMember(db, await ctx.user(), farmId, 'editor')
   const patch = parse(zonePatch, await ctx.body())
+  await assertZoneWritable(db, farmId, zoneId, ctx.deps.now())
   const [existing] = await db`select ${db.unsafe(ZONE_COLS)} from zones where id = ${zoneId} and farm_id = ${farmId}`
   if (!existing) throw new HttpError(404, 'zone_not_found')
   // Re-validate the merged zone so invariants (boundary or area) hold after partial updates.
@@ -159,6 +165,7 @@ export async function createSensor(ctx: Ctx) {
   await requireMember(db, await ctx.user(), farmId, 'editor')
   const s = parse(sensorCreate, await ctx.body())
   await assertZone(db, farmId, s.zoneId)
+  if (s.type !== 'manual') await assertCanAddSensors(db, farmId, ctx.deps.now())
   const row = {
     id: s.id ?? randomUUID(), farm_id: farmId, name: s.name, device_id: s.deviceId, type: s.type,
     provider: s.type === 'lorawan' ? (s.provider ?? 'ttn') : null, depth_cm: s.depthCm, zone_id: s.zoneId,
@@ -219,8 +226,9 @@ export async function sensorReadings(ctx: Ctx) {
   await requireMember(db, await ctx.user(), farmId, 'viewer')
   const [s] = await db`select id from sensors where id = ${sensorId} and farm_id = ${farmId}`
   if (!s) throw new HttpError(404, 'sensor_not_found')
+  const { historyDays } = await planFor(db, farmId, ctx.deps.now())
   const readings = await db`select ${db.unsafe(READING_COLS)} from sensor_readings
-    where sensor_id = ${sensorId} and farm_id = ${farmId} and timestamp >= ${sinceParam(ctx, 30)}
+    where sensor_id = ${sensorId} and farm_id = ${farmId} and timestamp >= ${sinceParam(ctx, 30, historyDays)}
     order by timestamp limit 10000`
   return json(200, { readings: cleanAll(readings) })
 }
@@ -254,6 +262,7 @@ export async function addManualReading(ctx: Ctx) {
   await requireMember(db, await ctx.user(), farmId, 'editor')
   const r = parse(manualReading(ctx.deps.now), await ctx.body())
   await assertZone(db, farmId, r.zoneId)
+  await assertZoneWritable(db, farmId, r.zoneId, ctx.deps.now())
   const row = {
     id: r.id ?? randomUUID(), farm_id: farmId, sensor_id: null, zone_id: r.zoneId, timestamp: r.timestamp,
     soil_moisture_percent: r.soilMoisturePercent, soil_temperature_c: r.soilTemperatureC ?? null, depth_cm: r.depthCm ?? null, source: r.source,
@@ -268,6 +277,7 @@ export async function addIrrigationEvent(ctx: Ctx) {
   await requireMember(db, await ctx.user(), farmId, 'editor')
   const e = parse(irrigationEvent(ctx.deps.now), await ctx.body())
   await assertZone(db, farmId, e.zoneId)
+  await assertZoneWritable(db, farmId, e.zoneId, ctx.deps.now())
   const row = { id: e.id ?? randomUUID(), farm_id: farmId, zone_id: e.zoneId, timestamp: e.timestamp, mm: e.mm, litres: e.litres, note: e.note ?? null, source: 'manual' }
   const [out] = await db`insert into irrigation_events ${db(row)} returning ${db.unsafe(EVENT_COLS)}`
   return json(201, clean(out))

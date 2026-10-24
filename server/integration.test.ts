@@ -5,6 +5,7 @@ import { PGlite } from '@electric-sql/pglite'
 import { PGLiteSocketServer } from '@electric-sql/pglite-socket'
 import postgres from 'postgres'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
+import type Stripe from 'stripe'
 import type { AuthUser } from './auth.js'
 import type { Config } from './config.js'
 import type { Deps } from './context.js'
@@ -23,7 +24,27 @@ const config: Config = {
   allowedOrigins: ['https://geoviva-tau.vercel.app'],
   publicApiUrl: 'https://api.example.test',
   adminToken: 'admin-token-for-tests-only',
+  billing: {
+    stripeSecretKey: 'sk_test_unused',
+    webhookSecret: 'whsec_test',
+    appUrl: 'https://geoviva-tau.vercel.app',
+    prices: { growerMonthly: 'price_gm', growerYearly: 'price_gy', sensorMonthly: 'price_sm', sensorYearly: 'price_sy' },
+  },
 }
+
+// Fake Stripe: signature "good" verifies; Checkout/Portal return URLs; subscriptions come from `stripeSubs`.
+const stripeSubs = new Map<string, unknown>()
+const fakeStripe = {
+  webhooks: {
+    constructEventAsync: async (payload: string, sig: string) => {
+      if (sig !== 'good') throw new Error('bad signature')
+      return JSON.parse(payload)
+    },
+  },
+  subscriptions: { retrieve: async (id: string) => stripeSubs.get(id) },
+  checkout: { sessions: { create: async () => ({ url: 'https://checkout.stripe.test/s' }) } },
+  billingPortal: { sessions: { create: async () => ({ url: 'https://billing.stripe.test/p' }) } },
+} as unknown as Stripe
 
 // Fake The Things Stack: accepts key "NNSXS.GOOD...", lists two devices, accepts webhook creation.
 const ttsCalls: string[] = []
@@ -50,6 +71,7 @@ let handle: (req: Request) => Promise<Response>
 beforeAll(async () => {
   pg = await PGlite.create()
   await pg.exec(readFileSync(new URL('../db/001_init.sql', import.meta.url), 'utf8'))
+  await pg.exec(readFileSync(new URL('../db/003_billing.sql', import.meta.url), 'utf8'))
   server = new PGLiteSocketServer({ db: pg, port: PORT, host: '127.0.0.1' })
   await server.start()
   sql = postgres(config.databaseUrl, { max: 1, prepare: false, ssl: false })
@@ -63,6 +85,7 @@ beforeAll(async () => {
     },
     fetch: fakeFetch,
     now: () => now,
+    stripe: fakeStripe,
   }
   handle = createHandler(() => deps)
 }, 60_000)
@@ -214,6 +237,67 @@ describe('GeoViva API (Postgres)', () => {
     expect(un.body.zoneId).toBeNull()
     const re = await call('PATCH', `/farms/${farmId}/sensors/${sensorId}`, { as: 'alice', body: { zoneId } })
     expect(re.body.zoneId).toBe(zoneId)
+  })
+
+  it('enforces Free limits and upgrades to Grower from the signed Stripe webhook', async () => {
+    const free = await call('GET', `/farms/${farmId}/billing`, { as: 'alice' })
+    expect(free.body).toMatchObject({ plan: 'free', sensors: 1, zones: 2, usage: { sensors: 1 } })
+    // Second connected sensor is over the Free plan; manual sources never count.
+    const extra = await call('POST', `/farms/${farmId}/sensors`, { as: 'alice', body: { name: 'Probe 2', deviceId: 'probe-2', type: 'lorawan' } })
+    expect(extra).toMatchObject({ status: 402, body: { error: 'plan_limit' } })
+    expect((await call('POST', `/farms/${farmId}/sensors`, { as: 'alice', body: { name: 'Hand probe', deviceId: 'hand-1', type: 'manual' } })).status).toBe(201)
+
+    expect((await call('POST', `/farms/${farmId}/billing/checkout`, { as: 'bob', body: { billing: 'monthly' } })).status).toBe(404)
+    const checkout = await call('POST', `/farms/${farmId}/billing/checkout`, { as: 'alice', body: { billing: 'yearly', extraSensors: 1 } })
+    expect(checkout).toMatchObject({ status: 201, body: { url: 'https://checkout.stripe.test/s' } })
+
+    const sub = {
+      id: 'sub_1', object: 'subscription', customer: 'cus_1', status: 'active', cancel_at_period_end: false, metadata: { farm_id: farmId },
+      items: { data: [
+        { price: { id: 'price_gy', recurring: { interval: 'year' } }, quantity: 1, current_period_end: 1_800_000_000 },
+        { price: { id: 'price_sy', recurring: { interval: 'year' } }, quantity: 1, current_period_end: 1_800_000_000 },
+      ] },
+    }
+    stripeSubs.set('sub_1', sub)
+    const event = { id: 'evt_1', type: 'checkout.session.completed', data: { object: { mode: 'subscription', subscription: 'sub_1', client_reference_id: farmId } } }
+    const hook = (body: unknown, sig = 'good') => handle(new Request('https://geoviva-tau.vercel.app/api/billing/webhook', {
+      method: 'POST', headers: { 'stripe-signature': sig }, body: JSON.stringify(body),
+    }))
+    expect((await hook(event, 'forged')).status).toBe(400)
+    expect((await hook(event)).status).toBe(200)
+    expect((await hook(event)).status).toBe(200) // Stripe retry: applied once
+    expect(await sql`select count(*)::int as n from stripe_events`).toEqual([{ n: 1 }])
+
+    const paid = await call('GET', `/farms/${farmId}/billing`, { as: 'alice' })
+    expect(paid.body).toMatchObject({ plan: 'grower', interval: 'year', extraSensors: 1, sensors: 4, zones: null, cancelAtPeriodEnd: false })
+    expect((await call('POST', `/farms/${farmId}/billing/checkout`, { as: 'alice', body: { billing: 'monthly' } })).status).toBe(409)
+    expect((await call('POST', `/farms/${farmId}/billing/portal`, { as: 'alice' })).body.url).toBe('https://billing.stripe.test/p')
+
+    // Cancelling in the portal keeps Grower until the period ends.
+    const cancelled = { ...sub, cancel_at_period_end: true }
+    expect((await hook({ id: 'evt_2', type: 'customer.subscription.updated', data: { object: cancelled } })).status).toBe(200)
+    expect((await call('GET', `/farms/${farmId}/billing`, { as: 'alice' })).body).toMatchObject({ plan: 'grower', cancelAtPeriodEnd: true })
+  })
+
+  it('caps Free farms at 2 zones and makes zones past the limit read-only after a downgrade', async () => {
+    const farm = await call('POST', '/farms', { as: 'bob', body: { name: 'Bob farm', location: '', lat: 49, lon: -122 } })
+    const bobFarm = farm.body.id
+    const zone = (name: string) => call('POST', `/farms/${bobFarm}/zones`, { as: 'bob', body: { name, cropId: 'lettuce', soilId: 'loam', method: 'drip', areaM2: 100 } })
+    expect((await zone('A')).status).toBe(201)
+    expect((await zone('B')).status).toBe(201)
+    expect(await zone('C')).toMatchObject({ status: 402, body: { error: 'plan_limit' } })
+
+    // Paid, add a third zone, then the subscription ends: nothing is deleted, the newest zone is read-only.
+    await sql`insert into subscriptions (farm_id, stripe_customer_id, status) values (${bobFarm}, 'cus_b', 'active')`
+    const c = await zone('C')
+    expect(c.status).toBe(201)
+    await sql`update subscriptions set status = 'canceled' where farm_id = ${bobFarm}`
+    const data = await call('GET', `/farms/${bobFarm}/data`, { as: 'bob' })
+    expect(data.body.zones).toHaveLength(3)
+    const reading = await call('POST', `/farms/${bobFarm}/readings/manual`, { as: 'bob', body: { zoneId: c.body.id, timestamp: '2026-10-22T11:00:00Z', soilMoisturePercent: 20 } })
+    expect(reading).toMatchObject({ status: 402, body: { error: 'plan_read_only' } })
+    const first = data.body.zones[0].id
+    expect((await call('POST', `/farms/${bobFarm}/readings/manual`, { as: 'bob', body: { zoneId: first, timestamp: '2026-10-22T11:00:00Z', soilMoisturePercent: 20 } })).status).toBe(201)
   })
 
   it('provisions, claims and ingests from an ESP32', async () => {

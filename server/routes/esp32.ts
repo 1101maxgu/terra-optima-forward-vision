@@ -8,6 +8,7 @@ import { requireMember } from '../auth.js'
 import type { Ctx } from '../context.js'
 import { hashSecret, newClaimCode, normalizeClaimCode, randomToken, safeEqual, verifySecret } from '../crypto.js'
 import { logIngest } from '../db.js'
+import { assertCanAddSensors, sensorAccepting } from '../entitlements.js'
 import { bearer, HttpError, json, parse, readJson } from '../http.js'
 import { adminDevice, esp32Claim, esp32Reading, esp32TokenRequest } from '../schemas.js'
 import { assertZone, clean, SENSOR_COLS } from './farm.js'
@@ -37,6 +38,7 @@ export async function claimDevice(ctx: Ctx) {
   const input = parse(esp32Claim, await ctx.body())
   await requireMember(db, await ctx.user(), input.farmId, 'editor')
   await assertZone(db, input.farmId, input.zoneId)
+  await assertCanAddSensors(db, input.farmId, ctx.deps.now())
   const hash = hashSecret(normalizeClaimCode(input.claimCode), config.encryptionKey)
   const sensor = await db.begin(async (tx) => {
     // Atomic: only an unclaimed code can be claimed. Same 404 for unknown and already-claimed codes.
@@ -103,6 +105,10 @@ export async function ingestEsp32(ctx: Ctx) {
   const [s] = await db<{ id: string; zone_id: string | null; depth_cm: number }[]>`
     select id, zone_id, depth_cm from sensors where id = ${c.sensor_id} and farm_id = ${c.farm_id}`
   if (!s) throw new HttpError(409, 'not_registered')
+  if (!(await sensorAccepting(db, c.farm_id, s.id, ctx.deps.now()))) {
+    await logIngest(db, { source: 'esp32', reason: 'plan_limit', deviceId: c.device_id, farmId: c.farm_id })
+    throw new HttpError(402, 'plan_limit', 'This sensor is over the farm’s plan limit')
+  }
   const ts = r.data.timestamp ?? new Date(ctx.deps.now()).toISOString()
   await db`insert into sensor_readings ${db({
     id: randomUUID(), farm_id: c.farm_id, sensor_id: s.id, zone_id: s.zone_id, timestamp: ts,

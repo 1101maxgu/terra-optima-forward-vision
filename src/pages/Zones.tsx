@@ -1,6 +1,7 @@
 import { Suspense, useState } from 'react'
 import { ChevronRight, List, Map as MapIcon, MapPin, Plus, Radio, Search, X } from 'lucide-react'
 import Luke from '../guide/Luke'
+import PlanNudge from '../components/billing/PlanNudge'
 import { openLuke } from '../guide/LukeChat'
 import { useFarm } from '../state/farmStore'
 import type { CropId, FarmerStatus, Zone } from '../types'
@@ -25,7 +26,8 @@ function NoBoundary({ z }: { z: Zone }) {
 }
 
 export default function Zones() {
-  const { farm, zones, sensors, zoneStatus } = useFarm()
+  const { farm, zones, sensors, zoneStatus, limits } = useFarm()
+  const atZoneLimit = limits?.zones != null && zones.length >= limits.zones
   const [view, setView] = useState<'list' | 'map'>('list')
   const [q, setQ] = useState('')
   const [crop, setCrop] = useState<CropId | ''>('')
@@ -63,7 +65,8 @@ export default function Zones() {
 
   return (
     <div className="flex flex-col gap-5">
-      <PageHeader title="My zones" subtitle={`${zones.length} zone${zones.length === 1 ? '' : 's'} on ${farm.name || 'your farm'}`} actions={create} help="zones" />
+      <PageHeader title="My zones" subtitle={`${zones.length} zone${zones.length === 1 ? '' : 's'} on ${farm.name || 'your farm'}`} actions={atZoneLimit ? undefined : create} help="zones" />
+      {atZoneLimit && <PlanNudge>{`You’re using all ${limits?.zones} zones on the Free plan. Upgrade to Grower for unlimited zones.`}</PlanNudge>}
 
       <div className="flex flex-wrap items-center gap-2">
         <div role="tablist" aria-label="View" className="flex rounded-xl border border-line bg-surface p-1">

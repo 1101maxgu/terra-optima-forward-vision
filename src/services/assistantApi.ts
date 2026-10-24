@@ -3,6 +3,7 @@
 import type { ZoneStatus } from '../state/farmStore'
 import type { Sensor, Zone } from '../types'
 import { STATUS, timeAgo } from '../ui/kit'
+import { getAuthToken } from '../data/apiRepo'
 
 export interface ChatTurn {
   role: 'user' | 'assistant'
@@ -52,11 +53,12 @@ const base = () => String(import.meta.env.VITE_API_URL ?? '').replace(/\/$/, '')
 
 export async function askLuke(question: string, history: ChatTurn[], context?: string): Promise<string> {
   if (!navigator.onLine) throw new AssistantUnavailableError('offline')
+  const token = await getAuthToken() // signed-in farmers get their own (and on Grower, a higher) question limit
   let res: Response
   try {
     res = await fetch(`${base()}/api/assistant`, {
       method: 'POST',
-      headers: { 'content-type': 'application/json' },
+      headers: { 'content-type': 'application/json', ...(token ? { authorization: `Bearer ${token}` } : {}) },
       body: JSON.stringify({ question, history: history.slice(-12), context }),
     })
   } catch {

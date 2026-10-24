@@ -1,3 +1,4 @@
+import type Stripe from 'stripe'
 import type { AuthUser } from './auth.js'
 import type { Config } from './config.js'
 import type { Db } from './db.js'
@@ -9,6 +10,8 @@ export interface Deps {
   verifyToken(token: string): Promise<AuthUser>
   fetch: typeof fetch
   now(): number
+  /** Stripe client; tests inject a fake. Built from config.billing when absent. */
+  stripe?: Stripe
 }
 
 export interface Ctx {

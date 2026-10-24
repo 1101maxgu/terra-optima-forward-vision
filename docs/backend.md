@@ -107,13 +107,11 @@ See `.env.example`. Server side: `DATABASE_URL`, `GEOVIVA_ENCRYPTION_KEY` (32 by
    Authentication → URL configuration: add `https://geoviva-tau.vercel.app`.
 6. `openssl rand -base64 32` gives `GEOVIVA_ENCRYPTION_KEY`. Run it again for `GEOVIVA_ADMIN_TOKEN`.
 7. Vercel → geoviva → Settings → Environment Variables: add everything from `.env.example`, then redeploy.
-8. Frontend sign-in. This is not built yet and is owned by the UI team. Add `@supabase/supabase-js`, create the client with
-   `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY`, add a sign-in screen, and at startup call:
-   ```ts
-   import { setAuthTokenProvider } from './data/apiRepo'
-   setAuthTokenProvider(async () => (await supabase.auth.getSession()).data.session?.access_token ?? null)
-   ```
-   Without a token, `apiRepository.load()` throws "Sign in to load your farm from the GeoViva server."
+8. Frontend sign-in (built: `src/auth/`, page `#/account`). Set `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`
+   (Project Settings → API, the anon/publishable key). Sign-in is an email magic link using the PKCE flow, so the
+   link must be opened in the same browser that requested it. Under Authentication → URL configuration, add the
+   app origin (e.g. `https://geoviva-tau.vercel.app/`) as the site URL and a redirect URL.
+9. Billing (optional): run `db/003_billing.sql`, then follow "Stripe billing" below.
 
 ### Option B: Neon (or Vercel Postgres) + Supabase Auth
 
@@ -125,13 +123,44 @@ needs to return `{ userId: uuid, email? }`.
 ### Running migrations
 
 The migrations are plain SQL files, run once in order: `psql "$DATABASE_URL" -f db/001_init.sql` (use the direct, non-pooler URL for DDL).
-Add new changes as `db/003_*.sql` and so on. Never edit a migration that has already been applied.
+`db/003_billing.sql` adds the billing tables. Add new changes as `db/004_*.sql` and so on. Never edit a migration that has already been applied.
 
 ### Local development
 
 `vercel dev` runs the Vite app and `/api` together with `.env.local`. The tests need no database:
 `npm test` runs `server/integration.test.ts` against in-process PGlite (real Postgres 17 SQL) using the
 production `postgres` client and the real migration.
+
+## Stripe billing
+
+Grower is a Stripe subscription per farm. The browser is never trusted about plans: only the signed webhook
+writes `subscriptions`, and limits are checked on the server (`server/entitlements.ts`, numbers from
+`src/pricing/plans.ts`, the same file the Pricing page shows).
+
+| Method | Path | Auth | Notes |
+|---|---|---|---|
+| GET | `/api/farms/:farmId/billing` | viewer | plan, limits, usage, renewal date, `billingEnabled` |
+| POST | `/api/farms/:farmId/billing/checkout` | owner | `{billing: 'monthly' or 'yearly', extraSensors}` returns `{url}` (Stripe Checkout). 409 if already subscribed |
+| POST | `/api/farms/:farmId/billing/portal` | owner | returns `{url}` (Stripe Customer Portal) |
+| POST | `/api/billing/webhook` | Stripe signature | applied once per event id (`stripe_events`) |
+
+Setup (use test mode first):
+1. Stripe → Products: create **Grower** with two recurring CAD prices ($8/month, $80/year) and **Extra sensor**
+   with two ($3/month, $30/year). Put the four price ids in `STRIPE_PRICE_*`. If you change a price, change
+   `src/pricing/plans.ts` too.
+2. Settings → Tax: turn on Stripe Tax and add your GST/PST registrations. Checkout uses `automatic_tax`, so
+   the farmer sees the tax before paying.
+3. Settings → Billing → Customer portal: allow updating the card, viewing invoices, changing the Extra sensor
+   quantity, and cancelling **at the end of the billing period** with **no prorations** (no partial refunds).
+4. Developers → Webhooks: endpoint `https://<your-app>/api/billing/webhook` with events `checkout.session.completed`,
+   `customer.subscription.created`, `customer.subscription.updated`, `customer.subscription.deleted`,
+   `invoice.payment_failed`. Copy the signing secret to `STRIPE_WEBHOOK_SECRET`.
+5. Set `STRIPE_SECRET_KEY` and `GEOVIVA_APP_URL`, redeploy, sign in, and buy Grower with test card 4242 4242 4242 4242.
+
+Plan rules: Free is 2 zones, 1 connected sensor (manual readings never count), 30 days of history, 7-day reports. Grower is
+unlimited zones, 3 sensors plus paid extras, 30-day reports and 1 year of history. `past_due` keeps Grower for 7 days
+after the period ends. When a plan ends nothing is deleted: the newest zones and sensors past the Free limits
+become read-only (writes get `402 plan_read_only`, sensor uplinks are logged as `plan_limit`).
 
 ## The Things Stack (LoRaWAN)
 

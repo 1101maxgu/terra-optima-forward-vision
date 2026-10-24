@@ -10,6 +10,7 @@ import { BatteryText, ConnectivityBadge, latestSensorReading, TYPE_LABEL } from 
 import { errMsg, Esp32Connect, LorawanConnect, MethodCards } from '../components/sensors/SensorConnect'
 import SensorLocationPicker from '../components/sensors/SensorLocationPicker'
 import Luke from '../guide/Luke'
+import PlanNudge from '../components/billing/PlanNudge'
 import { openLuke } from '../guide/LukeChat'
 import TrustBadge, { TrustPanel } from '../components/TrustBadge'
 import type { ConnectMethod } from '../components/wizard/draft'
@@ -236,7 +237,9 @@ function RecentReadings({ sensor }: { sensor: Sensor }) {
 }
 
 function AddSensor({ onDone }: { onDone: () => void }) {
-  const { zones, saveSensor } = useFarm()
+  const { zones, sensors, saveSensor, limits } = useFarm()
+  const connected = sensors.filter((s) => s.type !== 'manual').length
+  const atSensorLimit = limits !== null && connected >= limits.sensors
   const [method, setMethod] = useState<ConnectMethod | null>(null)
   const [zoneId, setZoneId] = useState('')
   const [name, setName] = useState('Manual probe')
@@ -279,8 +282,11 @@ function AddSensor({ onDone }: { onDone: () => void }) {
   return (
     <div className="space-y-4">
       <MethodCards value={method} onChange={setMethod} />
-      {method === 'lorawan' && <>{zoneSelect}<LorawanConnect zoneId={zoneId || null} onRegistered={mirror} /></>}
-      {method === 'esp32' && <>{zoneSelect}<Esp32Connect zoneId={zoneId || null} onClaimed={(s) => mirror([s])} /></>}
+      {(method === 'lorawan' || method === 'esp32') && atSensorLimit && (
+        <PlanNudge>{`Your plan covers ${limits?.sensors} connected sensor${limits?.sensors === 1 ? '' : 's'}, and you’re using ${connected}. Upgrade or add extra sensors to connect another. Manual readings are always free.`}</PlanNudge>
+      )}
+      {method === 'lorawan' && !atSensorLimit && <>{zoneSelect}<LorawanConnect zoneId={zoneId || null} onRegistered={mirror} /></>}
+      {method === 'esp32' && !atSensorLimit && <>{zoneSelect}<Esp32Connect zoneId={zoneId || null} onClaimed={(s) => mirror([s])} /></>}
       {method === 'manual' && (
         <form className="space-y-3" onSubmit={(e) => { e.preventDefault(); createManual() }}>
           <p className="text-sm text-muted">A manual sensor is a named spot where you take readings with a handheld meter. No hardware connection.</p>

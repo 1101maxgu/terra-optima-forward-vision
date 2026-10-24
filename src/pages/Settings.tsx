@@ -144,6 +144,7 @@ export default function Settings() {
         </div>
         <div className="flex flex-wrap gap-2">
           <a href="#/help" className="btn-primary inline-flex min-h-12 items-center">Open Help</a>
+          <a href="#/pricing" className="btn-secondary inline-flex min-h-12 items-center">Plans and pricing</a>
           <button type="button" onClick={startTour} className="btn-secondary inline-flex min-h-12 items-center gap-2">
             <Play aria-hidden className="size-5" /> Replay tour
           </button>

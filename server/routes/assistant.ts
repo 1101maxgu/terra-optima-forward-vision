@@ -3,7 +3,9 @@
 import Anthropic from '@anthropic-ai/sdk'
 import { z } from 'zod'
 import { TOPICS } from '../../src/guide/content.js'
-import { HttpError, json, parse, readJson } from '../http.js'
+import type { Deps } from '../context.js'
+import { planFor } from '../entitlements.js'
+import { bearer, HttpError, json, parse, readJson } from '../http.js'
 
 const MODEL = 'claude-opus-5-5'
 
@@ -39,23 +41,39 @@ What you don't do:
 ${guideText}
 </guide>`
 
-// Best-effort per-client limit. Serverless instances don't share memory, so this caps bursts, not totals.
+// Best-effort limit per signed-in user (per IP when signed out). Serverless instances don't share memory,
+// so this caps bursts, not totals. Grower farms get more room.
 const WINDOW_MS = 10 * 60_000
-const MAX_PER_WINDOW = 20
+const MAX_PER_WINDOW = { free: 20, grower: 60 }
 const hits = new Map<string, number[]>()
-function rateLimit(key: string, now: number) {
+function rateLimit(key: string, max: number, now: number) {
   const recent = (hits.get(key) ?? []).filter((t) => now - t < WINDOW_MS)
-  if (recent.length >= MAX_PER_WINDOW) throw new HttpError(429, 'rate_limited', 'Luke needs a short rest. Try again in a few minutes.')
+  if (recent.length >= max) throw new HttpError(429, 'rate_limited', 'Luke needs a short rest. Try again in a few minutes.')
   recent.push(now)
   hits.set(key, recent)
 }
 
 let client: Anthropic | undefined
 
-export async function ask(req: Request, env: NodeJS.ProcessEnv = process.env): Promise<Response> {
+/** Who is asking, and on which plan. Unknown or invalid tokens fall back to the per-IP Free limit. */
+async function caller(req: Request, deps: Deps | null): Promise<{ key: string; max: number }> {
+  const ip = req.headers.get('x-forwarded-for')?.split(',')[0].trim() || 'unknown'
+  const token = bearer(req)
+  if (!deps || !token) return { key: `ip:${ip}`, max: MAX_PER_WINDOW.free }
+  try {
+    const { userId } = await deps.verifyToken(token)
+    const [farm] = await deps.db<{ farm_id: string }[]>`select farm_id from farm_members where user_id = ${userId} order by created_at limit 1`
+    const plan = farm ? (await planFor(deps.db, farm.farm_id, deps.now())).plan : 'free'
+    return { key: `user:${userId}`, max: MAX_PER_WINDOW[plan] }
+  } catch {
+    return { key: `ip:${ip}`, max: MAX_PER_WINDOW.free }
+  }
+}
+
+export async function ask(req: Request, deps: Deps | null, env: NodeJS.ProcessEnv = process.env): Promise<Response> {
   if (!env.ANTHROPIC_API_KEY) return json(503, { error: 'backend_not_configured' })
-  const clientKey = req.headers.get('x-forwarded-for')?.split(',')[0].trim() || 'unknown'
-  rateLimit(clientKey, Date.now())
+  const who = await caller(req, deps)
+  rateLimit(who.key, who.max, Date.now())
   const input = parse(request, await readJson(req))
 
   const messages: Anthropic.Beta.BetaMessageParam[] = [

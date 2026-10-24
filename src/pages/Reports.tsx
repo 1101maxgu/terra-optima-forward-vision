@@ -1,20 +1,23 @@
 import { useState } from 'react'
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
-import { Activity, Droplets } from 'lucide-react'
+import { Activity, Droplets, Lock } from 'lucide-react'
 import { useFarm } from '../state/farmStore'
 import { CROPS } from '../data/crops'
 import { Card, PageHeader, SampleBanner, fmtLitres } from '../ui/kit'
 import { CROP_EMOJI } from '../ui/farm'
 import { SectionTitle } from '../ui/widgets'
 import { HistoryCard, ProjectionCard } from '../components/Outcomes'
+import PlanNudge from '../components/billing/PlanNudge'
 
 // Literal colour: SVG fills can't read CSS vars reliably. Keep in sync with --color-water.
 const WATER = '#0b6683'
 const DAY = 86_400_000
 
 export default function Reports() {
-  const { dataset, zones, events, readings } = useFarm()
+  const { dataset, zones, events, readings, limits } = useFarm()
   const [days, setDays] = useState<7 | 30>(7)
+  const [nudge, setNudge] = useState(false)
+  const locked = (d: number) => limits !== null && d > limits.reportDays
   const since = Date.now() - days * DAY
 
   const rows = zones.map((z) => {
@@ -46,9 +49,10 @@ export default function Reports() {
                 key={d}
                 role="tab"
                 aria-selected={days === d}
-                onClick={() => setDays(d)}
-                className={`min-h-10 rounded-lg px-4 font-semibold ${days === d ? 'bg-forest text-white' : 'text-muted'}`}
+                onClick={() => (locked(d) ? setNudge(true) : setDays(d))}
+                className={`inline-flex min-h-10 items-center gap-1 rounded-lg px-4 font-semibold ${days === d ? 'bg-forest text-white' : 'text-muted'}`}
               >
+                {locked(d) && <Lock aria-label="Grower plan" className="size-4" />}
                 Last {d} days
               </button>
             ))}
@@ -56,6 +60,7 @@ export default function Reports() {
         }
       />
       {dataset === 'sample' && <SampleBanner />}
+      {nudge && <PlanNudge>{`The Free plan shows reports for the last ${limits?.reportDays} days. Upgrade to Grower for 30-day reports.`}</PlanNudge>}
 
       {zones.length === 0 ? (
         <Card className="text-muted">

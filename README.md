@@ -34,6 +34,7 @@ npm run build             # production build in dist/
 | Hardware | Concept only — see the pitch reference document. |
 | Help guide and tour | Real. Text lives in `src/guide/content.ts` (draft, to be reviewed). Works offline after the first visit (`public/sw.js`, production builds only). |
 | Luke (help assistant) | Real when `ANTHROPIC_API_KEY` is set on the server (`POST /api/assistant`, no database needed). Without it, or offline, Luke searches the built-in guide instead. |
+| Pricing and plans | Real page (`#/pricing`) with draft placeholder prices in `src/pricing/plans.ts`. Sign-in (Supabase magic link), Stripe subscriptions and server-side plan limits are built but need Supabase and Stripe set up: see [docs/backend.md](docs/backend.md#stripe-billing). |
 
 ## Maps
 
