@@ -179,12 +179,15 @@ export function simulateWater(
     return clamp(d + crop.kc * et0 - effectiveRain(rain) - grossMm * eff, 0, taw)
   }
 
+  const raw = crop.p * taw
   let dBase = clamp((soil.fieldCapacity - startMoisture) * zr, 0, taw)
   let dGeo = dBase
+  let baselineStressDays = 0
   const daily: WaterComparison['daily'] = days.map((day, i) => {
     const baseMm = eventDays.has(i % 7) ? schedule.mmPerEvent : 0
     const baselineLitres = baseMm * zone.areaM2
     dBase = step(dBase, day, baseMm)
+    if (dBase > raw) baselineStressDays++
 
     const reading: Reading = {
       zoneId: zone.id,
@@ -210,6 +213,7 @@ export function simulateWater(
     geovivaLitres,
     avoidedLitres,
     reductionPct: baselineLitres > 0 ? r1((avoidedLitres / baselineLitres) * 100) : 0,
+    baselineStressDays,
     daily,
     provenance: 'projected',
   }

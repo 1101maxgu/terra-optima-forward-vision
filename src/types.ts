@@ -115,6 +115,7 @@ export interface WaterComparison {
   geovivaLitres: number
   avoidedLitres: number
   reductionPct: number
+  baselineStressDays?: number // days the fixed schedule leaves the root zone below the refill point
   daily: { date: string; baselineLitres: number; geovivaLitres: number; moisture: number }[]
   provenance: 'projected'
 }

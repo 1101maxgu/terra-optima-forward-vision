@@ -2,6 +2,7 @@
 import { useMemo } from 'react'
 import type { CropId, FarmerStatus, Recommendation } from '../types'
 import { useFarm } from '../state/farmStore'
+import { difference, projectZone, sumOutcomes, type Outcome, type ZoneProjection } from '../engine/outcomes'
 
 export const CROP_EMOJI: Record<CropId, string> = { tomato: '🍅', lettuce: '🥬', blueberry: '🫐', strawberry: '🍓' }
 
@@ -64,4 +65,32 @@ export function useAlerts(): FarmAlert[] {
     const rank = { alert: 0, warn: 1, info: 2 }
     return out.sort((a, b) => rank[a.level] - rank[b.level])
   }, [zones, sensors, weather, zoneStatus, sensorState, assessments])
+}
+
+export interface FarmProjection {
+  zones: (ZoneProjection & { saved: Outcome; confidence: number; discounted: string[] })[]
+  missing: string[] // zone names with no reading to start from
+  baseline: Outcome
+  geoviva: Outcome
+  saved: Outcome
+}
+
+/** Next 14 days, GeoViva vs the fixed schedule, from each zone's current (trusted) moisture. */
+export function useProjection(): FarmProjection {
+  const { zones, latestReading, recommendations, weather, outcomeSettings } = useFarm()
+  return useMemo(() => {
+    const { schedule, costs } = outcomeSettings
+    const out: FarmProjection['zones'] = []
+    const missing: string[] = []
+    for (const z of zones) {
+      const r = latestReading(z.id)
+      if (!r || !Number.isFinite(r.moisture)) { missing.push(z.name); continue }
+      const p = projectZone(z, r.moisture, weather.days, schedule, costs)
+      const rec = recommendations[z.id]
+      out.push({ ...p, saved: difference(p.baseline, p.geoviva), confidence: rec?.confidence ?? 1, discounted: rec?.discounted?.map((d) => d.sensorName) ?? [] })
+    }
+    const baseline = sumOutcomes(out.map((z) => z.baseline), costs)
+    const geoviva = sumOutcomes(out.map((z) => z.geoviva), costs)
+    return { zones: out, missing, baseline, geoviva, saved: difference(baseline, geoviva) }
+  }, [zones, latestReading, recommendations, weather, outcomeSettings])
 }

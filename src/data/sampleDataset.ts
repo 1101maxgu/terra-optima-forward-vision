@@ -82,6 +82,13 @@ export function buildSampleData(now = Date.now()): FarmData {
     { id: 'e3', zoneId: 'c', timestamp: iso(5 * 24 * H), mm: 18, litres: 57_600, source: 'sample' },
     { id: 'e4', zoneId: 'd', timestamp: iso(3 * 24 * H), mm: 8, litres: 16_000, source: 'sample' },
   ]
+  // Before GeoViva (8–63 days ago): a calendar habit of 15 mm three times a week, so the
+  // "compared with your previous period" report has history to compare against.
+  for (let day = 8; day < 64; day++) {
+    if (![1, 3, 5].includes(day % 7)) continue
+    for (const z of zones)
+      events.push({ id: `h-${z.id}-${day}`, zoneId: z.id, timestamp: iso((day * 24 - 7) * H), mm: 15, litres: 15 * z.areaM2, note: 'Calendar schedule', source: 'sample' })
+  }
 
   return {
     farm: { id: SAMPLE_FARM_ID, name: 'Riverbend Market Garden (sample farm)', location: 'Abbotsford, BC (Fraser Valley)', lat: LAT0 + 0.0004, lon: LON0 + 0.0009 },

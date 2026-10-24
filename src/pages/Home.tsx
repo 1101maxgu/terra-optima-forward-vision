@@ -1,5 +1,5 @@
 import { Suspense } from 'react'
-import { Activity, Bell, CalendarClock, ChartColumn, ChevronRight, CloudSun, Droplets, Map as MapIcon, Plus, Radio, Sprout } from 'lucide-react'
+import { Activity, Bell, CalendarClock, ChartColumn, ChevronRight, CloudSun, Droplets, Map as MapIcon, Plus, Radio, Sprout, TrendingDown } from 'lucide-react'
 import { useFarm, type ZoneStatus } from '../state/farmStore'
 import type { Zone } from '../types'
 import { FarmMap, MapSkeleton } from '../map'
@@ -8,9 +8,10 @@ import { splitSessions } from '../engine/irrigation'
 import { CROPS } from '../data/crops'
 import { navigate } from '../router'
 import { Card, SampleBanner, StatusPill, fmtLitres, fmtPct, timeAgo } from '../ui/kit'
-import { CROP_EMOJI, STATUS_RANK, bestTime, greeting, shortName, useAlerts } from '../ui/farm'
+import { CROP_EMOJI, STATUS_RANK, bestTime, greeting, shortName, useAlerts, useProjection } from '../ui/farm'
 import { ForecastMini, SectionTitle, StatCard, dayLook } from '../ui/widgets'
 import { ALERT_ICON } from '../components/shell/TopBar'
+import ProvenanceBadge from '../components/ProvenanceBadge'
 
 type Row = { z: Zone; st: ZoneStatus }
 
@@ -118,6 +119,8 @@ export default function Home() {
           sub={look ? `${look.word} · ${weather.source === 'bundled' ? 'sample' : 'live'}` : weatherSrc}
         />
       </div>
+
+      <OutcomeTile />
 
       {zones.length === 0 ? (
         <Card className="flex flex-col items-center gap-3 py-10 text-center">
@@ -304,5 +307,23 @@ export default function Home() {
         </div>
       </div>
     </div>
+  )
+}
+
+/** One-line projected outcome; details on Reports. Hidden until a zone has a reading to project from. */
+function OutcomeTile() {
+  const p = useProjection()
+  if (!p.zones.length) return null
+  const s = p.saved
+  return (
+    <a href="#/reports" className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-2xl border border-line bg-surface p-3.5 hover:bg-paper">
+      <TrendingDown aria-hidden className="size-6 shrink-0 text-water" />
+      <span className="font-semibold">Next 14 days vs a fixed schedule:</span>
+      <span className="tabular-nums">
+        {s.litres >= 0 ? `${fmtLitres(s.litres)} less water` : `${fmtLitres(-s.litres)} more water`} · {s.events >= 0 ? `${s.events} fewer waterings` : `${-s.events} more waterings`} · {Math.round(s.labourH * 10) / 10} h labour
+      </span>
+      <ProvenanceBadge p="projected" />
+      <span className="ml-auto inline-flex items-center gap-1 font-semibold text-leaf">See report <ChevronRight aria-hidden className="size-4" /></span>
+    </a>
   )
 }

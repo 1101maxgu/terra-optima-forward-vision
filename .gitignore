@@ -6,3 +6,6 @@ dist
 .playwright-mcp
 .vercel
 .env*
+
+# Claude Code personal settings
+.claude/settings.local.json

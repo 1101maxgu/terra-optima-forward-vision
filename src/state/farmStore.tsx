@@ -2,13 +2,14 @@
 // Persistence goes through FarmRepository (src/data/repo.ts); this file holds derived state.
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import type {
-  FarmData, FarmerStatus, Freshness, IrrigationEvent, Reading, Recommendation, Sensor, SensorAssessment, SensorReading, Weather, Zone,
+  FarmData, FarmerStatus, FixedSchedule, Freshness, IrrigationEvent, Reading, Recommendation, Sensor, SensorAssessment, SensorReading, Weather, Zone,
 } from '../types'
 import sampleWeather from '../data/sampleWeather.json'
 import { getWeather } from '../services/weather'
 import { recommend } from '../engine/irrigation'
 import { assessSensors } from '../engine/sensorTrust'
 import { notifyTransitions, notifier } from '../engine/notify'
+import { DEFAULT_COSTS, DEFAULT_SCHEDULE, type CostAssumptions } from '../engine/outcomes'
 import { createRepository, newId, resetSample, type Dataset } from '../data/repo'
 
 export type WeatherMode = 'sample' | 'live'
@@ -40,8 +41,27 @@ interface UiPrefs {
   dataset: Dataset
   weatherMode: WeatherMode
   acks: Acks
+  outcomes: OutcomeSettings
 }
-const UI_DEFAULTS: UiPrefs = { dataset: 'sample', weatherMode: 'sample', acks: {} }
+/** Baseline schedule and cost assumptions for the outcomes report; editable in Settings. */
+export interface OutcomeSettings {
+  schedule: FixedSchedule
+  costs: CostAssumptions
+}
+export const OUTCOME_DEFAULTS: OutcomeSettings = { schedule: DEFAULT_SCHEDULE, costs: DEFAULT_COSTS }
+const UI_DEFAULTS: UiPrefs = { dataset: 'sample', weatherMode: 'sample', acks: {}, outcomes: OUTCOME_DEFAULTS }
+
+/** Keeps only known, finite, non-negative numbers; anything else falls back to the default. */
+export function cleanOutcomeSettings(p: unknown): OutcomeSettings {
+  const o = (p && typeof p === 'object' ? p : {}) as Partial<Record<keyof OutcomeSettings, Record<string, unknown>>>
+  const pick = <T extends object>(src: Record<string, unknown> | undefined, def: T): T =>
+    Object.fromEntries(Object.entries(def).map(([k, v]) => {
+      const x = src?.[k]
+      return [k, typeof x === 'number' && Number.isFinite(x) && x >= 0 ? x : v]
+    })) as T
+  const schedule = pick(o.schedule, DEFAULT_SCHEDULE)
+  return { schedule: { ...schedule, eventsPerWeek: Math.min(7, Math.round(schedule.eventsPerWeek)) }, costs: pick(o.costs, DEFAULT_COSTS) }
+}
 function loadUi(): UiPrefs {
   try {
     const raw = localStorage.getItem(UI_KEY)
@@ -51,6 +71,7 @@ function loadUi(): UiPrefs {
       dataset: p.dataset === 'mine' ? 'mine' : 'sample',
       weatherMode: p.weatherMode === 'live' ? 'live' : 'sample',
       acks: p.acks && typeof p.acks === 'object' ? p.acks : {},
+      outcomes: cleanOutcomeSettings(p.outcomes),
     }
   } catch {
     return UI_DEFAULTS
@@ -260,6 +281,9 @@ function useFarmState() {
       else delete acks[sensorId]
       patchUi({ acks })
     },
+
+    outcomeSettings: ui.outcomes,
+    setOutcomeSettings: (o: OutcomeSettings) => patchUi({ outcomes: cleanOutcomeSettings(o) }),
 
     createZone: (z: Omit<Zone, 'id' | 'farmId'>) => run(repo.saveZone({ ...z, id: newId(), farmId })),
     updateZone: (id: string, patch: Partial<Zone>) => {

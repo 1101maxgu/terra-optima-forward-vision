@@ -29,6 +29,7 @@ npm run build             # production build in dist/
 | Weather | Real Open-Meteo forecast in Live mode; simulated July fortnight in Sample mode. |
 | Sensor readings | Simulated on the sample farm; real via manual entry or CSV. LoRaWAN (The Things Stack) and ESP32 ingestion are implemented in the backend but need it provisioned. |
 | Suspicious-reading detection | Real rules-based checks (stuck, out-of-range, spikes, peer disagreement, unexplained rises, low battery) with a confidence score; probes that look faulty are left out of advice. Thresholds are illustrative. No LLM. See [docs/sensor-trust.md](docs/sensor-trust.md). Email/push alerts are not built yet. |
+| Outcomes (water, waterings, labour, cost vs a baseline) | Modelled: a 14-day projection against a fixed schedule, plus logged history against the previous period. Cost defaults are rough and editable. Not measured savings. See [docs/outcomes.md](docs/outcomes.md). |
 | Backend | Implemented (Vercel function + Postgres + Supabase Auth). Not provisioned: every `/api` call returns `503 backend_not_configured`. See [docs/backend.md](docs/backend.md). |
 | Hardware | Concept only — see the pitch reference document. |
 | Help guide and tour | Real. Text lives in `src/guide/content.ts` (draft, to be reviewed). Works offline after the first visit (`public/sw.js`, production builds only). |

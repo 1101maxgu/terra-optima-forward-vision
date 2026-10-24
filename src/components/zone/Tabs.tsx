@@ -171,7 +171,7 @@ export function IrrigationTab({ zone, zs, onAddReading }: { zone: Zone; zs: Zone
             <p className="mt-2 text-muted">Nothing logged yet.</p>
           ) : (
             <ul className="mt-2 divide-y divide-line">
-              {past.map((e) => (
+              {past.slice(0, 10).map((e) => (
                 <li key={e.id} className="flex flex-wrap items-baseline gap-x-3 py-3">
                   <span className="font-semibold">{fmtDate(e.timestamp)}</span>
                   <span className="tabular-nums">{e.mm} mm · {fmtLitres(e.litres)}</span>
@@ -181,6 +181,7 @@ export function IrrigationTab({ zone, zs, onAddReading }: { zone: Zone; zs: Zone
               ))}
             </ul>
           )}
+          {past.length > 10 && <p className="mt-2 text-sm text-muted">Showing the latest 10 of {past.length}. All of them count in Reports.</p>}
         </Card>
       </div>
     </div>

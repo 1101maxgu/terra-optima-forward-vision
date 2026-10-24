@@ -6,6 +6,7 @@ import { CROPS } from '../data/crops'
 import { Card, PageHeader, SampleBanner, fmtLitres } from '../ui/kit'
 import { CROP_EMOJI } from '../ui/farm'
 import { SectionTitle } from '../ui/widgets'
+import { HistoryCard, ProjectionCard } from '../components/Outcomes'
 
 // Literal colour: SVG fills can't read CSS vars reliably. Keep in sync with --color-water.
 const WATER = '#0b6683'
@@ -37,7 +38,7 @@ export default function Reports() {
       <PageHeader
         title="Reports"
         help="weather-reports"
-        subtitle="Water you applied and how complete your sensor data is."
+        subtitle="Water, waterings and labour compared with a baseline, what you applied, and how complete your sensor data is."
         actions={
           <div role="tablist" aria-label="Period" className="flex rounded-xl border border-line bg-surface p-1">
             {([7, 30] as const).map((d) => (
@@ -65,6 +66,8 @@ export default function Reports() {
         </Card>
       ) : (
         <>
+          <ProjectionCard />
+          <HistoryCard days={days} />
           <Card>
             <SectionTitle icon={<Droplets aria-hidden className="size-5 text-water" />} title={`Water applied · last ${days} days`} />
             <p className="mb-3 text-3xl font-bold tabular-nums">{fmtLitres(total)}</p>
