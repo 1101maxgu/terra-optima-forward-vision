@@ -1,12 +1,14 @@
 // App state (integrator-owned). Components read everything through useFarm().
 // Persistence goes through FarmRepository (src/data/repo.ts); this file holds derived state.
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import type {
-  FarmData, FarmerStatus, Freshness, IrrigationEvent, Reading, Recommendation, Sensor, SensorReading, Weather, Zone,
+  FarmData, FarmerStatus, Freshness, IrrigationEvent, Reading, Recommendation, Sensor, SensorAssessment, SensorReading, Weather, Zone,
 } from '../types'
 import sampleWeather from '../data/sampleWeather.json'
 import { getWeather } from '../services/weather'
 import { recommend } from '../engine/irrigation'
+import { assessSensors } from '../engine/sensorTrust'
+import { notifyTransitions, notifier } from '../engine/notify'
 import { createRepository, newId, resetSample, type Dataset } from '../data/repo'
 
 export type WeatherMode = 'sample' | 'live'
@@ -26,24 +28,47 @@ export interface ZoneStatus {
   lastUpdate: string | null
   rec?: Recommendation // undefined when there is no reading at all
   sensors: Sensor[]
+  /** Probes left out because they look faulty. Non-empty with no rec means every probe was left out. */
+  discounted: { sensorId: string; sensorName: string; reason: string }[]
 }
+
+/** Farmer's response to a flag, keyed by sensor. Stored with the signal kinds it covered so a new problem flags again. */
+export type Acks = Record<string, { mode: 'fine' | 'ignore'; kinds: string[] }>
 
 const UI_KEY = 'geoviva:ui:v2'
 interface UiPrefs {
   dataset: Dataset
   weatherMode: WeatherMode
+  acks: Acks
 }
-const UI_DEFAULTS: UiPrefs = { dataset: 'sample', weatherMode: 'sample' }
+const UI_DEFAULTS: UiPrefs = { dataset: 'sample', weatherMode: 'sample', acks: {} }
 function loadUi(): UiPrefs {
   try {
     const raw = localStorage.getItem(UI_KEY)
     const p = raw ? JSON.parse(raw) : {}
     // Only known keys: older builds stored demo overrides here, which must not leak into statuses.
-    return { dataset: p.dataset === 'mine' ? 'mine' : 'sample', weatherMode: p.weatherMode === 'live' ? 'live' : 'sample' }
+    return {
+      dataset: p.dataset === 'mine' ? 'mine' : 'sample',
+      weatherMode: p.weatherMode === 'live' ? 'live' : 'sample',
+      acks: p.acks && typeof p.acks === 'object' ? p.acks : {},
+    }
   } catch {
     return UI_DEFAULTS
   }
 }
+
+/** Applies the farmer's acknowledgements: an ack holds while the current signals are ones it already covered. */
+export function applyAcks(raw: Record<string, SensorAssessment>, acks: Acks): Record<string, SensorAssessment> {
+  const out: Record<string, SensorAssessment> = {}
+  for (const [id, a] of Object.entries(raw)) {
+    const ack = acks[id]
+    out[id] = ack && a.signals.filter((x) => x.weight > 0).every((x) => ack.kinds.includes(x.kind)) ? { ...a, ack: ack.mode } : a
+  }
+  return out
+}
+
+/** A probe's readings stay out of recommendations while it looks faulty, unless the farmer marked it fine. */
+export const isExcluded = (a?: SensorAssessment) => a?.verdict === 'likely-faulty' && a.ack !== 'fine'
 
 export function freshnessOf(r: Pick<SensorReading, 'timestamp' | 'source'>, now: number): Freshness {
   const age = now - Date.parse(r.timestamp)
@@ -105,13 +130,24 @@ function useFarmState() {
   const readings = useMemo(() => data?.readings ?? [], [data])
   const events = useMemo(() => data?.events ?? [], [data])
 
+  const rawAssessments = useMemo(() => assessSensors(sensors, readings, weather.days, events, now), [sensors, readings, weather, events, now])
+  const assessments = useMemo(() => applyAcks(rawAssessments, ui.acks), [rawAssessments, ui.acks])
+  const excluded = useMemo(() => new Set(Object.values(assessments).filter(isExcluded).map((a) => a.sensorId)), [assessments])
+
+  // Phase 2 swaps the no-op notifier for a server-side sender; here it only fires on verdict changes.
+  const prevAssessments = useRef<Record<string, SensorAssessment>>({})
+  useEffect(() => {
+    notifyTransitions(prevAssessments.current, assessments, notifier)
+    prevAssessments.current = assessments
+  }, [assessments])
+
   /** Current value per zone: average of each sensor's latest fresh reading, else the newest reading. */
   const zoneReading = useMemo(() => {
     const out: Record<string, { reading: Reading; freshness: Freshness; lastUpdate: string } | undefined> = {}
     for (const z of zones) {
       const latestBy = new Map<string, SensorReading>()
       for (const r of readings) {
-        if (r.zoneId !== z.id) continue
+        if (r.zoneId !== z.id || (r.sensorId && excluded.has(r.sensorId))) continue
         const k = r.sensorId ?? `manual:${r.source}`
         const prev = latestBy.get(k)
         if (!prev || Date.parse(r.timestamp) > Date.parse(prev.timestamp)) latestBy.set(k, r)
@@ -135,16 +171,31 @@ function useFarmState() {
       }
     }
     return out
-  }, [zones, readings, now])
+  }, [zones, readings, now, excluded])
+
+  const discountedIn = useCallback(
+    (zoneId: string) => sensors
+      .filter((s) => s.zoneId === zoneId && excluded.has(s.id))
+      .map((s) => ({ sensorId: s.id, sensorName: s.name, reason: assessments[s.id].explanation })),
+    [sensors, excluded, assessments],
+  )
 
   const recommendations = useMemo(() => {
     const out: Record<string, Recommendation> = {}
     for (const z of zones) {
       const zr = zoneReading[z.id]
-      if (zr) out[z.id] = recommend(z, zr.reading, weather.days)
+      if (!zr) continue
+      const rec = recommend(z, zr.reading, weather.days)
+      const used = sensors.filter((s) => s.zoneId === z.id && !excluded.has(s.id) && assessments[s.id])
+      const discounted = discountedIn(z.id)
+      rec.confidence = used.length ? Math.min(...used.map((s) => assessments[s.id].ack === 'fine' ? 1 : assessments[s.id].confidence)) : 1
+      rec.discounted = discounted
+      for (const d of discounted)
+        rec.factors.push({ label: `${d.sensorName} left out`, value: d.reason, effect: 'neutral', provenance: 'estimated' })
+      out[z.id] = rec
     }
     return out
-  }, [zones, zoneReading, weather])
+  }, [zones, zoneReading, weather, sensors, excluded, assessments, discountedIn])
 
   const zoneStatus = useCallback(
     (zoneId: string): ZoneStatus => {
@@ -161,9 +212,10 @@ function useFarmState() {
         soilTempC: zr && Number.isFinite(zr.reading.soilTempC) ? Math.round(zr.reading.soilTempC * 10) / 10 : null,
         lastUpdate: zr?.lastUpdate ?? null,
         sensors: sensors.filter((s) => s.zoneId === zoneId),
+        discounted: discountedIn(zoneId),
       }
     },
-    [zoneReading, recommendations, sensors],
+    [zoneReading, recommendations, sensors, discountedIn],
   )
 
   const sensorState = useCallback(
@@ -198,6 +250,16 @@ function useFarmState() {
     /** Engine-shaped current reading for a zone, or null if none. */
     latestReading: (zoneId: string): Reading | null => zoneReading[zoneId]?.reading ?? null,
     recommendations,
+    /** Trust verdict per sensor id; missing when the sensor has no recent readings. */
+    assessments,
+    /** Farmer's response to a flag. 'fine' puts the probe back into recommendations; 'ignore' only silences alerts. */
+    acknowledge: (sensorId: string, mode: 'fine' | 'ignore' | null) => {
+      const a = assessments[sensorId]
+      const acks = { ...ui.acks }
+      if (mode && a) acks[sensorId] = { mode, kinds: a.signals.filter((x) => x.weight > 0).map((x) => x.kind) }
+      else delete acks[sensorId]
+      patchUi({ acks })
+    },
 
     createZone: (z: Omit<Zone, 'id' | 'farmId'>) => run(repo.saveZone({ ...z, id: newId(), farmId })),
     updateZone: (id: string, patch: Partial<Zone>) => {

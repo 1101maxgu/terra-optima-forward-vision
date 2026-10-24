@@ -1,5 +1,6 @@
 import type { Factor } from '../types'
 import ProvenanceBadge from './ProvenanceBadge'
+import { confidenceWord } from './TrustBadge'
 
 const EFFECT: Record<Factor['effect'], { arrow: string; text: string; cls: string }> = {
   raises: { arrow: '↑', text: 'raises need', cls: 'text-alert' },
@@ -7,12 +8,15 @@ const EFFECT: Record<Factor['effect'], { arrow: string; text: string; cls: strin
   neutral: { arrow: '→', text: 'neutral', cls: 'text-muted' },
 }
 
-export default function WhyPanel({ factors }: { factors: Factor[] }) {
+export default function WhyPanel({ factors, confidence }: { factors: Factor[]; confidence?: number }) {
   return (
     <section aria-labelledby="why-h">
       <h3 id="why-h" className="mb-2 text-sm font-semibold tracking-wide text-muted uppercase">
         Why this recommendation
       </h3>
+      {confidence !== undefined && confidence < 0.75 && (
+        <p className="mb-2 text-sm text-sun">Confidence in the sensor data: {confidenceWord(confidence)} ({Math.round(confidence * 100)}%).</p>
+      )}
       <ul className="divide-y divide-line border-y border-line">
         {factors.map((f) => {
           const e = EFFECT[f.effect]

@@ -66,7 +66,8 @@ export function buildSampleData(now = Date.now()): FarmData {
     const last = Date.parse(s.lastSeen!)
     for (let i = 27; i >= 0; i--) {
       const t = last - i * 6 * H
-      const vwc = current[s.zoneId] + 0.002 * i + (s.depthCm >= 40 ? 0.01 : 0)
+      // Demo faults for sensor trust: s2 is stuck at its 24 h-old value; s4 had a one-off spike 12 h ago.
+      const vwc = current[s.zoneId] + 0.002 * (s.id === 's2' ? Math.max(i, 4) : i) + (s.depthCm >= 40 ? 0.01 : 0) + (s.id === 's4' && i === 2 ? 0.2 : 0)
       readings.push({
         id: `${s.id}-${i}`, sensorId: s.id, zoneId: s.zoneId, timestamp: new Date(t).toISOString(),
         soilMoisturePercent: Math.round(vwc * 1000) / 10, soilTemperatureC: temps[s.zoneId] + (i % 4 === 2 ? 3 : 0),

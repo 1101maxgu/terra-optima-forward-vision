@@ -35,15 +35,16 @@ export interface FarmAlert {
   at?: string // ISO, when known
 }
 
-/** Alerts derived from current data: water today, offline/never-seen sensors, low battery, heavy rain, missing readings. */
+/** Alerts derived from current data: water today, offline/never-seen sensors, suspicious readings, low battery, heavy rain, missing readings. */
 export function useAlerts(): FarmAlert[] {
-  const { zones, sensors, weather, zoneStatus, sensorState } = useFarm()
+  const { zones, sensors, weather, zoneStatus, sensorState, assessments } = useFarm()
   return useMemo(() => {
     const out: FarmAlert[] = []
     for (const z of zones) {
       const st = zoneStatus(z.id)
       if (st.status === 'water-today' && st.rec)
         out.push({ id: `w-${z.id}`, level: 'alert', text: `${z.name} needs water today (${st.rec.grossMm} mm)`, href: `/zones/${z.id}`, at: st.lastUpdate ?? undefined })
+      if (!st.lastUpdate && st.discounted.length) continue // every probe looks faulty; the sensor alerts say why
       if (!st.lastUpdate) out.push({ id: `n-${z.id}`, level: 'warn', text: `No readings yet for ${z.name}`, href: `/zones/${z.id}` })
       else if (st.freshness !== 'fresh')
         out.push({ id: `st-${z.id}`, level: 'warn', text: `${z.name}: readings out of date, check sensor`, href: `/zones/${z.id}`, at: st.lastUpdate })
@@ -52,6 +53,9 @@ export function useAlerts(): FarmAlert[] {
       const state = sensorState(s)
       if (state === 'offline') out.push({ id: `o-${s.id}`, level: 'alert', text: `Sensor ${s.name} offline (no signal for over 3 h)`, href: '/sensors', at: s.lastSeen })
       if (state === 'never') out.push({ id: `nv-${s.id}`, level: 'warn', text: `Sensor ${s.name} has not sent any readings`, href: '/sensors' })
+      const a = assessments[s.id]
+      if (a && !a.ack && (a.verdict === 'likely-faulty' || a.verdict === 'uncertain'))
+        out.push({ id: `t-${s.id}`, level: a.verdict === 'likely-faulty' ? 'alert' : 'warn', text: a.explanation, href: '/sensors', at: a.since })
       if (typeof s.batteryPercent === 'number' && s.batteryPercent < 20 && state !== 'never')
         out.push({ id: `b-${s.id}`, level: 'warn', text: `Sensor ${s.name} battery low (${s.batteryPercent}%)`, href: '/sensors', at: s.lastSeen })
     }
@@ -59,5 +63,5 @@ export function useAlerts(): FarmAlert[] {
     if (rain48 >= 10) out.push({ id: 'rain', level: 'info', text: `Heavy rain expected: ${Math.round(rain48)} mm in the next 48 h`, href: '/weather' })
     const rank = { alert: 0, warn: 1, info: 2 }
     return out.sort((a, b) => rank[a.level] - rank[b.level])
-  }, [zones, sensors, weather, zoneStatus, sensorState])
+  }, [zones, sensors, weather, zoneStatus, sensorState, assessments])
 }

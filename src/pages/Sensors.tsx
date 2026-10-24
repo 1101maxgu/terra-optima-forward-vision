@@ -9,6 +9,7 @@ import { PageHeader, timeAgo } from '../ui/kit'
 import { BatteryText, ConnectivityBadge, latestSensorReading, TYPE_LABEL } from '../components/sensors/SensorMeta'
 import { errMsg, Esp32Connect, LorawanConnect, MethodCards } from '../components/sensors/SensorConnect'
 import SensorLocationPicker from '../components/sensors/SensorLocationPicker'
+import TrustBadge, { TrustPanel } from '../components/TrustBadge'
 import type { ConnectMethod } from '../components/wizard/draft'
 
 type Tab = 'all' | 'lorawan' | 'esp32' | 'unassigned'
@@ -85,7 +86,7 @@ function StatusDot({ sensor }: { sensor: Sensor }) {
 }
 
 function SensorRow({ sensor, onMenu }: { sensor: Sensor; onMenu: () => void }) {
-  const { zones, readings, sensorState } = useFarm()
+  const { zones, readings, sensorState, assessments } = useFarm()
   const zone = zones.find((z) => z.id === sensor.zoneId)
   const r = latestSensorReading(readings, sensor.id)
   const seen = sensor.lastSeen ?? r?.timestamp
@@ -99,6 +100,7 @@ function SensorRow({ sensor, onMenu }: { sensor: Sensor; onMenu: () => void }) {
           <p className="text-sm text-muted">{TYPE_LABEL[sensor.type]} · {sensor.deviceId}</p>
           <div className="mt-1 flex flex-wrap items-center gap-2 text-sm">
             <ConnectivityBadge sensor={sensor} />
+            <TrustBadge a={assessments[sensor.id]} />
             {seen && <span className={stale ? 'font-semibold text-stale' : 'text-muted'}>{stale ? 'Stale · ' : ''}{timeAgo(seen)}</span>}
           </div>
         </div>
@@ -118,6 +120,7 @@ function SensorRow({ sensor, onMenu }: { sensor: Sensor; onMenu: () => void }) {
           ) : <span className="text-muted">No readings yet</span>}
           <BatteryText pct={sensor.batteryPercent} />
         </div>
+        <TrustPanel a={assessments[sensor.id]} className="lg:col-span-3" />
       </div>
       <button type="button" onClick={onMenu} aria-label={`Actions for ${sensor.name}`} className="-mr-2 grid size-11 shrink-0 place-items-center rounded-full hover:bg-stale-soft">
         <EllipsisVertical aria-hidden className="size-5" />

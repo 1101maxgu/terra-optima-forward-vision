@@ -10,6 +10,7 @@ import { CROPS } from '../../data/crops'
 import { SOILS } from '../../data/soils'
 import { EFFICIENCY, splitSessions } from '../../engine/irrigation'
 import WhyPanel from '../WhyPanel'
+import TrustBadge, { TrustPanel, confidenceWord } from '../TrustBadge'
 import { RingGauge } from './parts'
 import { SOIL_DRAINAGE, SOIL_TEXT } from './helpers'
 
@@ -18,7 +19,8 @@ const H2 = 'text-base font-bold'
 /** Why a zone is in "Check sensor", in plain words. */
 export function checkReason(zs: ZoneStatus, offline: number): string {
   const parts: string[] = []
-  if (!zs.lastUpdate) parts.push('No soil moisture readings yet. Add a manual reading or connect a sensor.')
+  if (!zs.lastUpdate && zs.discounted.length) parts.push(`Every probe in this zone looks faulty, so there is no reading to trust. ${zs.discounted[0].reason}`)
+  else if (!zs.lastUpdate) parts.push('No soil moisture readings yet. Add a manual reading or connect a sensor.')
   else if (zs.freshness !== 'fresh') parts.push(`The latest reading is from ${timeAgo(zs.lastUpdate)}, too old to base a watering decision on.`)
   if (offline) parts.push(`${offline} sensor${offline > 1 ? 's are' : ' is'} offline.`)
   return parts.join(' ')
@@ -70,9 +72,26 @@ export function RecommendationCard({ zone, zs, onAddReading }: { zone: Zone; zs:
           )}
           <p className="mt-3"><span className="text-muted">Best time: </span><b>{rec.timing}</b></p>
           <p className="mt-2 text-muted">{rec.summary}</p>
+          {!check && <Hedge zs={zs} />}
         </div>
       )}
     </Card>
+  )
+}
+
+/** Says plainly when the advice rests on readings we don't fully trust. */
+function Hedge({ zs }: { zs: ZoneStatus }) {
+  const rec = zs.rec!
+  const lowConf = (rec.confidence ?? 1) < 0.75
+  if (!lowConf && !rec.discounted?.length) return null
+  return (
+    <p className="mt-3 flex gap-2 rounded-xl border border-sun/30 bg-sun-soft p-3 text-sm">
+      <AlertTriangle className="mt-0.5 size-4 shrink-0 text-sun" aria-hidden />
+      <span>
+        {rec.discounted?.length ? `${rec.discounted.map((d) => d.sensorName).join(', ')} left out because ${rec.discounted.length > 1 ? 'they look' : 'it looks'} faulty. ` : ''}
+        {lowConf ? `I only partly trust the readings behind this advice (confidence ${confidenceWord(rec.confidence!)}); take a manual reading before acting.` : 'Advice is based on the remaining probes.'}
+      </span>
+    </p>
   )
 }
 
@@ -84,7 +103,7 @@ const WHEN: Record<ZoneStatus['status'], string> = {
 }
 
 export default function Overview({ zone, zs, onAddReading, onViewData }: { zone: Zone; zs: ZoneStatus; onAddReading: () => void; onViewData: () => void }) {
-  const { farm, sensorState, weather, weatherLabel } = useFarm()
+  const { farm, sensorState, weather, weatherLabel, assessments } = useFarm()
   const soil = SOILS[zone.soilId]
   const crop = CROPS[zone.cropId]
   const rec = zs.rec
@@ -220,6 +239,7 @@ export default function Overview({ zone, zs, onAddReading, onViewData }: { zone:
                       <Radio className="size-5 text-muted" aria-hidden />
                       <span className="font-semibold">{s.name}</span>
                       <span className="text-sm text-muted">{s.depthCm} cm</span>
+                      <TrustBadge a={assessments[s.id]} />
                       <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${st === 'online' ? 'bg-leaf-soft text-leaf' : 'bg-stale-soft text-stale'}`}>
                         {st === 'online' ? 'Online' : st === 'offline' ? 'Offline' : 'Never connected'}
                       </span>
@@ -229,6 +249,7 @@ export default function Overview({ zone, zs, onAddReading, onViewData }: { zone:
                         </span>
                       )}
                       <span className="text-sm text-muted sm:ml-auto">{s.lastSeen ? `Seen ${timeAgo(s.lastSeen)}` : 'Never seen'}</span>
+                      <TrustPanel a={assessments[s.id]} className="w-full" />
                     </li>
                   )
                 })}
@@ -258,7 +279,7 @@ export default function Overview({ zone, zs, onAddReading, onViewData }: { zone:
                     </div>
                   ))}
                 </dl>
-                <WhyPanel factors={rec.factors} />
+                <WhyPanel factors={rec.factors} confidence={rec.confidence} />
               </div>
             ) : (
               <p className="mt-2 text-muted">Available once this zone has a soil moisture reading.</p>
