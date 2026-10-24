@@ -11,6 +11,7 @@
     "typecheck:server": "tsc -p tsconfig.server.json"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.136.0",
     "@turf/area": "^7.4.0",
     "@turf/boolean-point-in-polygon": "^7.4.0",
     "@turf/kinks": "^7.4.0",

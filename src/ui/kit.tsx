@@ -1,6 +1,6 @@
 // Shared UI primitives for the v2 app. Frozen API — agents may add, not rename.
 import type { ReactNode } from 'react'
-import { AlertTriangle, CheckCircle2, Clock, Droplets } from 'lucide-react'
+import { AlertTriangle, CheckCircle2, CircleHelp, Clock, Droplets } from 'lucide-react'
 import type { FarmerStatus, Freshness } from '../types'
 
 export const STATUS: Record<FarmerStatus, { label: string; cls: string; dot: string; Icon: typeof Droplets }> = {
@@ -43,11 +43,21 @@ export function Card({ children, className = '', as: As = 'section' }: { childre
   return <As className={`rounded-2xl border border-line bg-surface p-4 sm:p-5 ${className}`}>{children}</As>
 }
 
-export function PageHeader({ title, subtitle, actions }: { title: string; subtitle?: ReactNode; actions?: ReactNode }) {
+/** Small "?" link to a Help topic (src/guide/content.ts ids). */
+export function HelpLink({ topic, label }: { topic: string; label: string }) {
+  return (
+    <a href={`#/help/${topic}`} aria-label={`Help: ${label}`} title="Help"
+      className="inline-grid size-11 shrink-0 place-items-center rounded-full text-water hover:bg-water-soft">
+      <CircleHelp aria-hidden className="size-6" />
+    </a>
+  )
+}
+
+export function PageHeader({ title, subtitle, actions, help }: { title: string; subtitle?: ReactNode; actions?: ReactNode; help?: string }) {
   return (
     <div className="flex flex-wrap items-end justify-between gap-3">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">{title}</h1>
+        <h1 className="flex items-center gap-1 text-2xl font-bold tracking-tight sm:text-3xl">{title}{help && <HelpLink topic={help} label={title} />}</h1>
         {subtitle && <p className="mt-1 text-muted">{subtitle}</p>}
       </div>
       {actions && <div className="flex flex-wrap gap-2">{actions}</div>}

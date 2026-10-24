@@ -1,5 +1,7 @@
 import { Suspense, useState } from 'react'
-import { ChevronRight, List, Map as MapIcon, MapPin, Plus, Radio, Search, Sprout, X } from 'lucide-react'
+import { ChevronRight, List, Map as MapIcon, MapPin, Plus, Radio, Search, X } from 'lucide-react'
+import Luke from '../guide/Luke'
+import { openLuke } from '../guide/LukeChat'
 import { useFarm } from '../state/farmStore'
 import type { CropId, FarmerStatus, Zone } from '../types'
 import { FarmMap, MapSkeleton } from '../map'
@@ -46,19 +48,22 @@ export default function Zones() {
   if (zones.length === 0)
     return (
       <div className="flex flex-col gap-5">
-        <PageHeader title="My zones" />
+        <PageHeader title="My zones" help="zones" />
         <Card className="flex flex-col items-center gap-3 py-12 text-center">
-          <Sprout aria-hidden className="size-12 text-leaf" />
+          <Luke className="size-16" />
           <h2 className="text-xl font-bold">No zones yet</h2>
           <p className="max-w-md text-muted">A zone is one field or bed with the same crop, soil and watering method. Draw it on the map and GeoViva starts giving you watering advice.</p>
           {create}
+          <button type="button" onClick={() => openLuke('How do I create my first zone?')} className="min-h-11 font-semibold text-water underline">
+            Not sure where to start? Ask Luke
+          </button>
         </Card>
       </div>
     )
 
   return (
     <div className="flex flex-col gap-5">
-      <PageHeader title="My zones" subtitle={`${zones.length} zone${zones.length === 1 ? '' : 's'} on ${farm.name || 'your farm'}`} actions={create} />
+      <PageHeader title="My zones" subtitle={`${zones.length} zone${zones.length === 1 ? '' : 's'} on ${farm.name || 'your farm'}`} actions={create} help="zones" />
 
       <div className="flex flex-wrap items-center gap-2">
         <div role="tablist" aria-label="View" className="flex rounded-xl border border-line bg-surface p-1">

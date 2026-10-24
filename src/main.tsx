@@ -11,3 +11,8 @@ createRoot(document.getElementById('root')!).render(
     </FarmProvider>
   </StrictMode>,
 )
+
+// Offline shell (public/sw.js). Production only, so dev always serves fresh code.
+if (import.meta.env.PROD && 'serviceWorker' in navigator) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}))
+}

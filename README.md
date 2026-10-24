@@ -30,6 +30,8 @@ npm run build             # production build in dist/
 | Sensor readings | Simulated on the sample farm; real via manual entry or CSV. LoRaWAN (The Things Stack) and ESP32 ingestion are implemented in the backend but need it provisioned. |
 | Backend | Implemented (Vercel function + Postgres + Supabase Auth). Not provisioned: every `/api` call returns `503 backend_not_configured`. See [docs/backend.md](docs/backend.md). |
 | Hardware | Concept only — see the pitch reference document. |
+| Help guide and tour | Real. Text lives in `src/guide/content.ts` (draft, to be reviewed). Works offline after the first visit (`public/sw.js`, production builds only). |
+| Luke (help assistant) | Real when `ANTHROPIC_API_KEY` is set on the server (`POST /api/assistant`, no database needed). Without it, or offline, Luke searches the built-in guide instead. |
 
 ## Maps
 

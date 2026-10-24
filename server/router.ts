@@ -4,6 +4,7 @@ import { loadConfig } from './config.js'
 import type { Ctx, Deps, Handler } from './context.js'
 import { getDb } from './db.js'
 import { bearer, HttpError, json, readJson } from './http.js'
+import * as assistant from './routes/assistant.js'
 import * as esp32 from './routes/esp32.js'
 import * as farm from './routes/farm.js'
 import * as lorawan from './routes/lorawan.js'
@@ -96,6 +97,20 @@ export function createHandler(makeDeps: () => Deps | null) {
       console.error('GeoViva backend misconfigured:', e instanceof Error ? e.message : e)
       return json(500, { error: 'backend_misconfigured' })
     }
+    const url = new URL(req.url)
+    // vercel.json rewrites /api/<path> to /api/router?path=<path>; direct calls use the pathname.
+    const path = '/' + (url.searchParams.get('path') ?? url.pathname.replace(/^\/api\/?/, '')).replace(/^\/+|\/+$/g, '')
+    // Luke only needs an Anthropic key, so it works before the database/auth backend is provisioned.
+    if (path === '/assistant') {
+      const cors = corsHeaders(req, deps?.config.allowedOrigins ?? '*')
+      if (req.method === 'OPTIONS') return withHeaders(json(204, null), cors)
+      if (req.method !== 'POST') return withHeaders(json(405, { error: 'method_not_allowed' }), cors)
+      try {
+        return withHeaders(await assistant.ask(req), cors)
+      } catch (e) {
+        return withHeaders(toErrorResponse(e), cors)
+      }
+    }
     if (!deps) {
       // Not provisioned yet: the static app keeps working; clients treat this as "server not connected".
       const res = req.method === 'OPTIONS' ? json(204, null) : json(503, { error: 'backend_not_configured' })
@@ -104,9 +119,6 @@ export function createHandler(makeDeps: () => Deps | null) {
     const cors = corsHeaders(req, deps.config.allowedOrigins)
     if (req.method === 'OPTIONS') return withHeaders(json(204, null), cors)
 
-    const url = new URL(req.url)
-    // vercel.json rewrites /api/<path> to /api/router?path=<path>; direct calls use the pathname.
-    const path = '/' + (url.searchParams.get('path') ?? url.pathname.replace(/^\/api\/?/, '')).replace(/^\/+|\/+$/g, '')
     try {
       const m = match(req.method, path)
       if (m === null) throw new HttpError(404, 'not_found')

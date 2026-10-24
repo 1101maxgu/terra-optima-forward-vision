@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react'
-import { RotateCcw } from 'lucide-react'
+import { Play, RotateCcw } from 'lucide-react'
 import { useFarm } from '../state/farmStore'
 import CsvImport from '../components/CsvImport'
+import Luke from '../guide/Luke'
+import { startTour } from '../guide/Tour'
 import { Card, PageHeader } from '../ui/kit'
 
 const input = 'h-12 w-full rounded-xl border border-line bg-surface px-3'
@@ -72,6 +74,20 @@ export default function Settings() {
   return (
     <div className="flex flex-col gap-5">
       <PageHeader title="Settings" />
+
+      <Card className="flex flex-wrap items-center gap-3">
+        <Luke className="size-12 shrink-0" />
+        <div className="min-w-0 flex-1">
+          <h2 className="text-xl font-bold">Help and guides</h2>
+          <p className="text-muted">How-tos, sensor setup and troubleshooting. Works without signal.</p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <a href="#/help" className="btn-primary inline-flex min-h-12 items-center">Open Help</a>
+          <button type="button" onClick={startTour} className="btn-secondary inline-flex min-h-12 items-center gap-2">
+            <Play aria-hidden className="size-5" /> Replay tour
+          </button>
+        </div>
+      </Card>
 
       <Card>
         <h2 className="text-xl font-bold">Farm data</h2>
