@@ -9,7 +9,7 @@ The app is proof for the 20% + 15% criteria. It cannot carry the 40%, so the bus
 
 ## Decisions settled
 - Segment: region-agnostic for demo, Fraser Valley-style zone mix (tomato, lettuce, blueberry); beachhead to be chosen by later interviews.
-- Advisory only; rules-based engine; no ML claims. No LLM explainer, no export, no accounts, no sensor/backend path.
+- Advisory only; rules-based engine; no ML claims. No LLM explainer (sensor-trust explanations are templated; an LLM explainer may come later behind `/api`, fed only the signals), no export, no accounts, no sensor/backend path.
 - **Keep:** 3-zone dashboard, zone detail + "Why" panel, scenario sliders/presets, modelled water comparison, Open-Meteo + bundled fallback, provenance badges, **CSV import**, in-app "How the hardware would work" SVG diagram, Impact/SDG panel, presentation mode + reset button.
 - SDGs: lead **SDG 6** and **SDG 13**, **SDG 2** via the free community-farm tier. Indicators: litres avoided, water per kg of crop, farms served. (SDG 12 dropped from the headline.)
 - Name GeoViva kept (user states it is original; a quick CIPO search is still cheap insurance).

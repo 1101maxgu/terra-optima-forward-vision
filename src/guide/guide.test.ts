@@ -23,7 +23,7 @@ const zone = { id: 'z1', name: 'North beds', cropId: 'lettuce', soilId: 'loam', 
 const other = { ...zone, id: 'z2', name: 'South field' } as Zone
 const sensor = { id: 's1', name: 'Probe 1', type: 'esp32', zoneId: 'z1', batteryPercent: 40 } as Sensor
 const zs: ZoneStatus = {
-  status: 'water-today', freshness: 'fresh', moisturePct: 18, soilTempC: null, lastUpdate: null, sensors: [sensor],
+  status: 'water-today', freshness: 'fresh', moisturePct: 18, soilTempC: null, lastUpdate: null, sensors: [sensor], discounted: [],
   rec: { summary: 'Soil is below refill.', grossMm: 12, litres: 4800, timing: 'Tonight', factors: [{ label: 'Soil moisture', value: '18%', effect: 'raises', provenance: 'measured' }] } as unknown as ZoneStatus['rec'],
 }
 const base: ContextInput = { dataset: 'mine', route: '/', zones: [zone, other], sensors: [sensor], zoneStatus: () => zs, sensorState: () => 'online' }

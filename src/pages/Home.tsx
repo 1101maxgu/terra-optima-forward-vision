@@ -15,6 +15,7 @@ import { ALERT_ICON } from '../components/shell/TopBar'
 type Row = { z: Zone; st: ZoneStatus }
 
 function checkReason(st: ZoneStatus) {
+  if (!st.lastUpdate && st.discounted.length) return 'Probe looks faulty'
   if (!st.lastUpdate) return 'No readings yet'
   if (st.freshness === 'stale') return `Readings stale, last ${timeAgo(st.lastUpdate)}`
   return `No recent data, last ${timeAgo(st.lastUpdate)}`

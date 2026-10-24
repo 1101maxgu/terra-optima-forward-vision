@@ -28,6 +28,7 @@ npm run build             # production build in dist/
 | Recommendations | Real FAO-56 root-zone water balance; constants cited in [docs/sources.md](docs/sources.md), to be reviewed by an agronomist. |
 | Weather | Real Open-Meteo forecast in Live mode; simulated July fortnight in Sample mode. |
 | Sensor readings | Simulated on the sample farm; real via manual entry or CSV. LoRaWAN (The Things Stack) and ESP32 ingestion are implemented in the backend but need it provisioned. |
+| Suspicious-reading detection | Real rules-based checks (stuck, out-of-range, spikes, peer disagreement, unexplained rises, low battery) with a confidence score; probes that look faulty are left out of advice. Thresholds are illustrative. No LLM. See [docs/sensor-trust.md](docs/sensor-trust.md). Email/push alerts are not built yet. |
 | Backend | Implemented (Vercel function + Postgres + Supabase Auth). Not provisioned: every `/api` call returns `503 backend_not_configured`. See [docs/backend.md](docs/backend.md). |
 | Hardware | Concept only — see the pitch reference document. |
 | Help guide and tour | Real. Text lives in `src/guide/content.ts` (draft, to be reviewed). Works offline after the first visit (`public/sw.js`, production builds only). |
@@ -41,7 +42,7 @@ Imagery config lives in `src/map/config.ts` (overridable with `VITE_SATELLITE_TI
 
 - `src/pages/` — Home, Zones, CreateZone (wizard), EditBoundary, ZoneDetail, Sensors, Weather, Reports, Settings
 - `src/map/` — FarmMap, ZoneDrawMap, FarmLocator (lazy-loaded), geometry helpers, provider config
-- `src/engine/` — `recommend()` and `simulateWater()` with tests
+- `src/engine/` — `recommend()` and `simulateWater()`, `assessSensors()` (sensor trust), with tests
 - `src/state/farmStore.tsx` — app state (`useFarm()`), freshness rules and farmer statuses
 - `src/data/` — repository layer, crop/soil constants, sample farm
 - `api/`, `server/`, `db/` — backend; `firmware/` — ESP32 example sketch

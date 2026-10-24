@@ -99,6 +99,8 @@ export interface Recommendation {
   projectedDepletionMm: number // depletion after 48 h horizon
   refillMoisture: number // m3/m3 at which depletion == RAW
   factors: Factor[]
+  confidence?: number // 0–1, lowest sensor trust in the zone; set by the store, not the engine
+  discounted?: { sensorId: string; sensorName: string; reason: string }[] // probes left out of this recommendation
   summary: string // one sentence built from the numbers above
 }
 
@@ -146,6 +148,28 @@ export interface Sensor {
   batteryPercent?: number
   lastSeen?: string // ISO
   createdAt: string
+}
+
+// ---------- sensor trust: is this probe's data believable? ----------
+
+export type TrustVerdict = 'trusted' | 'uncertain' | 'likely-faulty' | 'real-event'
+export type SignalKind = 'flatline' | 'out-of-range' | 'spike' | 'peer-disagree' | 'implausible' | 'battery' | 'real-event'
+
+export interface Signal {
+  kind: SignalKind
+  detail: string // plain language, one sentence
+  weight: number // how much it lowers confidence (0–1)
+}
+
+export interface SensorAssessment {
+  sensorId: string
+  verdict: TrustVerdict
+  confidence: number // 0–1
+  signals: Signal[]
+  explanation: string
+  action: string // what the farmer should do
+  since?: string // ISO, when the problem started
+  ack?: 'fine' | 'ignore' // farmer's response; 'fine' re-includes the probe, 'ignore' only silences alerts
 }
 
 /** Normalized reading shape shared by all sources (matches the backend table). */
