@@ -6,13 +6,14 @@ import { CROPS } from '../data/crops'
 import { Card, PageHeader, SampleBanner, fmtLitres } from '../ui/kit'
 import { CROP_EMOJI } from '../ui/farm'
 import { SectionTitle } from '../ui/widgets'
+import PlanNudge from '../components/billing/PlanNudge'
 
 // Literal colour: SVG fills can't read CSS vars reliably. Keep in sync with --color-water.
 const WATER = '#0b6683'
 const DAY = 86_400_000
 
 export default function Reports() {
-  const { dataset, zones, events, readings } = useFarm()
+  const { dataset, zones, events, readings, limits } = useFarm()
   const [days, setDays] = useState<7 | 30>(7)
   const since = Date.now() - days * DAY
 
@@ -31,6 +32,14 @@ export default function Reports() {
   })
   const total = rows.reduce((t, r) => t + r.litres, 0)
   const chart = rows.map((r) => ({ zone: r.z.name.split(' · ')[0], Litres: Math.round(r.litres) }))
+
+  if (limits && !limits.reports)
+    return (
+      <div className="flex flex-col gap-5">
+        <PageHeader title="Reports" help="weather-reports" />
+        <PlanNudge>Reports on water used, zone by zone, come with the Grower plan.</PlanNudge>
+      </div>
+    )
 
   return (
     <div className="flex flex-col gap-5">

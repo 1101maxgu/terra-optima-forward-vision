@@ -22,11 +22,17 @@ export function json(status: number, body: unknown, headers: Record<string, stri
 
 const MAX_BODY = 512 * 1024
 
-export async function readJson(req: Request): Promise<unknown> {
+/** Raw body, size-limited. Webhook signatures must be checked against these exact bytes. */
+export async function readText(req: Request): Promise<string> {
   const len = Number(req.headers.get('content-length') ?? 0)
   if (len > MAX_BODY) throw new HttpError(413, 'payload_too_large')
   const text = await req.text()
   if (text.length > MAX_BODY) throw new HttpError(413, 'payload_too_large')
+  return text
+}
+
+export async function readJson(req: Request): Promise<unknown> {
+  const text = await readText(req)
   if (!text) return {}
   try {
     return JSON.parse(text)

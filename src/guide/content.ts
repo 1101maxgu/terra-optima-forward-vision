@@ -1,7 +1,9 @@
 // All guide text lives here (plain data, no React) so the Help pages, Luke's offline search and the
 // assistant's server prompt share one source. Draft for review: wording is mine, facts come from the code.
 
-export type IconKey = 'start' | 'zones' | 'sensors' | 'advice' | 'weather' | 'hardware' | 'offline' | 'luke'
+import { BUNDLE, EXTRA_SENSOR, FREE, GROWER, money, POLICIES, PRICES_ARE_DRAFT, SENSOR, SPONSORED_LINE } from '../pricing/plans.js' // .js: the server imports this file as Node ESM
+
+export type IconKey = 'start' | 'zones' | 'sensors' | 'advice' | 'weather' | 'hardware' | 'offline' | 'pricing' | 'luke'
 
 export interface Block {
   heading?: string
@@ -300,6 +302,35 @@ export const TOPICS: Topic[] = [
       {
         heading: 'Where your data lives',
         body: 'Until your farm account is set up, your farm information is stored in this browser on this device. If you clear the browser’s data or switch devices, it will not come with you. The Sample farm is fictional and is never mixed with your own data.',
+      },
+    ],
+  },
+  {
+    id: 'pricing',
+    title: 'Plans and pricing',
+    summary: 'What is free, what costs money, and how cancelling works.',
+    icon: 'pricing',
+    askLuke: 'Which plan is right for my farm?',
+    keywords: ['price', 'cost', 'pay', 'subscription', 'plan', 'free', 'grower', 'bundle', 'cancel', 'refund', 'tax', 'shipping', 'money', 'how much'],
+    blocks: [
+      ...(PRICES_ARE_DRAFT ? [{ note: { kind: 'warn' as const, text: 'These are draft prices while GeoViva is in pilot. They may change before launch.' } }] : []),
+      {
+        heading: 'The plans (Canadian dollars, plus GST/PST)',
+        steps: [
+          `Free, $0: up to ${FREE.zones} zones, ${FREE.sensors} connected sensor, unlimited manual readings and CSV import, watering advice, weather, ${FREE.historyDays} days of history.`,
+          `Grower, ${money(GROWER.monthly)} a month or ${money(GROWER.yearly)} a year: unlimited zones, ${GROWER.sensorsIncluded} sensors included, reports, 1 year of history. For farms that already have sensors.`,
+          `Extra sensors on Grower: ${money(EXTRA_SENSOR.monthly)} a month or ${money(EXTRA_SENSOR.yearly)} a year each.`,
+          `Starter bundle, ${money(BUNDLE.price)} once: ${BUNDLE.sensors} GeoViva sensors plus the first year of Grower.`,
+          `Sensor only, ${money(SENSOR.price)} each: works on the Free plan. Shipping is ${money(SENSOR.shipping)} per order.`,
+        ],
+      },
+      {
+        heading: 'Good to know',
+        steps: [...POLICIES, SPONSORED_LINE],
+      },
+      {
+        heading: 'See your own cost',
+        body: 'Open Plans and pricing from the menu (under “More” on a phone). The calculator there adds up your first year and each year after for your number of zones and sensors.',
       },
     ],
   },

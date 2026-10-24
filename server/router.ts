@@ -5,6 +5,7 @@ import type { Ctx, Deps, Handler } from './context.js'
 import { getDb } from './db.js'
 import { bearer, HttpError, json, readJson } from './http.js'
 import * as assistant from './routes/assistant.js'
+import * as billing from './routes/billing.js'
 import * as esp32 from './routes/esp32.js'
 import * as farm from './routes/farm.js'
 import * as lorawan from './routes/lorawan.js'
@@ -35,6 +36,10 @@ const ROUTES: [string, string, Handler][] = [
   ['POST', '/ingest/esp32/token', esp32.issueDeviceToken],
   ['POST', '/ingest/esp32', esp32.ingestEsp32],
   ['POST', '/admin/devices', esp32.provisionDevice],
+  ['GET', '/farms/:farmId/billing', billing.getBilling],
+  ['POST', '/farms/:farmId/billing/checkout', billing.createCheckout],
+  ['POST', '/farms/:farmId/billing/portal', billing.createPortal],
+  ['POST', '/billing/webhook', billing.webhook],
 ]
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
@@ -106,7 +111,7 @@ export function createHandler(makeDeps: () => Deps | null) {
       if (req.method === 'OPTIONS') return withHeaders(json(204, null), cors)
       if (req.method !== 'POST') return withHeaders(json(405, { error: 'method_not_allowed' }), cors)
       try {
-        return withHeaders(await assistant.ask(req), cors)
+        return withHeaders(await assistant.ask(req, deps), cors)
       } catch (e) {
         return withHeaders(toErrorResponse(e), cors)
       }

@@ -1,6 +1,6 @@
 // Route: #/help (topic list + search) and #/help/:topic. All text comes from src/guide/content.ts.
 import { useState } from 'react'
-import { ArrowLeft, ChevronRight, CloudSun, Cpu, Droplets, FlaskConical, Lightbulb, Map as MapIcon, Play, Radio, Rocket, Search, TriangleAlert, WifiOff } from 'lucide-react'
+import { ArrowLeft, ChevronRight, CloudSun, Cpu, Droplets, FlaskConical, Lightbulb, Map as MapIcon, Play, Radio, Rocket, Search, Tag, TriangleAlert, WifiOff } from 'lucide-react'
 import { searchTopics, topicById, TOPICS, type Block, type IconKey } from '../guide/content'
 import { openLuke } from '../guide/LukeChat'
 import { startTour } from '../guide/Tour'
@@ -8,7 +8,7 @@ import Luke from '../guide/Luke'
 import { Card, PageHeader } from '../ui/kit'
 
 const ICON: Record<Exclude<IconKey, 'luke'>, typeof Rocket> = {
-  start: Rocket, zones: MapIcon, sensors: Radio, advice: Droplets, weather: CloudSun, hardware: Cpu, offline: WifiOff,
+  start: Rocket, zones: MapIcon, sensors: Radio, advice: Droplets, weather: CloudSun, hardware: Cpu, offline: WifiOff, pricing: Tag,
 }
 
 function TopicIcon({ icon, className = 'size-6' }: { icon: IconKey; className?: string }) {

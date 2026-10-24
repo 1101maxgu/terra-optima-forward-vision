@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { ChartColumn, CircleHelp, CloudSun, Ellipsis, House, Map as MapIcon, Radio, Settings } from 'lucide-react'
+import { ChartColumn, CircleHelp, CloudSun, Ellipsis, House, Map as MapIcon, Radio, Settings, Tag } from 'lucide-react'
 import { useFarm } from '../../state/farmStore'
 import LukeLauncher from '../../guide/LukeChat'
 import Tour from '../../guide/Tour'
@@ -12,6 +12,7 @@ const NAV = [
   { href: '/weather', label: 'Weather', Icon: CloudSun },
   { href: '/reports', label: 'Reports', Icon: ChartColumn },
   { href: '/settings', label: 'Settings', Icon: Settings },
+  { href: '/pricing', label: 'Plans and pricing', Icon: Tag },
   { href: '/help', label: 'Help', Icon: CircleHelp },
 ]
 const MOBILE = [
@@ -19,7 +20,7 @@ const MOBILE = [
   { href: '/zones', label: 'Zones', Icon: MapIcon, also: [] },
   { href: '/sensors', label: 'Sensors', Icon: Radio, also: [] },
   { href: '/reports', label: 'Reports', Icon: ChartColumn, also: [] },
-  { href: '/settings', label: 'More', Icon: Ellipsis, also: ['/weather', '/help'] },
+  { href: '/settings', label: 'More', Icon: Ellipsis, also: ['/weather', '/help', '/pricing', '/account'] },
 ]
 
 /** Anchor for the first-run tour (src/guide/Tour.tsx). */

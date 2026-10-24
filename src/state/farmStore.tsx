@@ -8,6 +8,8 @@ import sampleWeather from '../data/sampleWeather.json'
 import { getWeather } from '../services/weather'
 import { recommend } from '../engine/irrigation'
 import { createRepository, newId, resetSample, type Dataset } from '../data/repo'
+import { limitsFor, type Limits, type PlanId } from '../pricing/plans'
+import { getFarmPlan, type FarmPlan } from '../services/billingApi'
 
 export type WeatherMode = 'sample' | 'live'
 export type SensorState = 'online' | 'offline' | 'never'
@@ -68,14 +70,19 @@ function useFarmState() {
     }
   }, [ui])
 
+  const [serverPlan, setServerPlan] = useState<FarmPlan | null>(null)
+  const onServer = Boolean(import.meta.env.VITE_API_URL) && ui.dataset === 'mine'
+
   const reload = useCallback(async () => {
     try {
       setData(structuredClone(await repo.load()))
       setLoadError(null)
+      // The server owns the plan for synced farms; refreshed with the data so new limits show after upgrades.
+      if (onServer) getFarmPlan().then(setServerPlan, () => setServerPlan(null))
     } catch (e) {
       setLoadError(e instanceof Error ? e.message : 'Could not load farm data')
     }
-  }, [repo])
+  }, [repo, onServer])
 
   useEffect(() => {
     setData(null)
@@ -186,6 +193,10 @@ function useFarmState() {
     loadError,
     reload,
     dataset: ui.dataset,
+    /** null on the Sample farm (no limits in the demo). Synced farms: the server's plan. On this device: Free. */
+    plan: (ui.dataset === 'sample' ? null : onServer ? (serverPlan?.plan ?? 'free') : 'free') as PlanId | null,
+    limits: (ui.dataset === 'sample' ? null : onServer && serverPlan ? serverPlan : limitsFor('free')) as Limits | null,
+    serverPlan,
     setDataset: (dataset: Dataset) => patchUi({ dataset }),
     farm: data?.farm ?? { id: farmId, name: '', location: '', lat: 49.05, lon: -122.3 },
     updateFarm: (f: Partial<FarmData['farm']>) => run(repo.updateFarm({ ...data!.farm, ...f })),

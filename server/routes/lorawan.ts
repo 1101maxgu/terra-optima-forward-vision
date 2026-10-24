@@ -4,6 +4,7 @@ import { requireMember } from '../auth.js'
 import type { Ctx } from '../context.js'
 import { decrypt, encrypt, hashSecret, randomToken, verifySecret } from '../crypto.js'
 import { logIngest, type Db } from '../db.js'
+import { assertCanAddSensors, sensorAccepting } from '../entitlements.js'
 import { bearer, HttpError, json, parse, readJson } from '../http.js'
 import { PROVIDERS, ProviderError, ttn, type FieldMapping, type ProviderConnection, type ProviderId } from '../providers/lorawan.js'
 import { connectionPatch, lorawanRegister, ttnConnect } from '../schemas.js'
@@ -143,6 +144,9 @@ export async function registerDevices(ctx: Ctx) {
   const c = await loadConnection(db, farmId, connectionId)
   const { devices } = parse(lorawanRegister, await ctx.body())
   for (const z of new Set(devices.map((d) => d.zoneId))) await assertZone(db, farmId, z)
+  const known = await db<{ device_id: string }[]>`select device_id from sensors where farm_id = ${farmId} and connection_id = ${c.id}`
+  const added = new Set(devices.map((d) => d.deviceId).filter((id) => !known.some((k) => k.device_id === id))).size
+  if (added) await assertCanAddSensors(db, farmId, ctx.deps.now(), added)
   const rows = devices.map((d) => ({
     id: randomUUID(), farm_id: farmId, connection_id: c.id, name: d.name, device_id: d.deviceId, type: 'lorawan', provider: c.provider,
     depth_cm: d.depthCm, zone_id: d.zoneId,
@@ -176,6 +180,10 @@ export async function ingestTtn(ctx: Ctx) {
   if (!s) {
     await logIngest(db, { source: c.provider, reason: 'unknown_device', connectionId: c.id, farmId: c.farm_id, deviceId: up.deviceId })
     return json(202, { accepted: false, reason: 'unknown_device' })
+  }
+  if (!(await sensorAccepting(db, c.farm_id, s.id, ctx.deps.now()))) {
+    await logIngest(db, { source: c.provider, reason: 'plan_limit', connectionId: c.id, farmId: c.farm_id, deviceId: up.deviceId })
+    return json(202, { accepted: false, reason: 'plan_limit' })
   }
   await db`insert into sensor_readings ${db({
     id: randomUUID(), farm_id: c.farm_id, sensor_id: s.id, zone_id: s.zone_id, timestamp: up.timestamp,

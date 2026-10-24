@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.136.0",
+    "@supabase/supabase-js": "^2.118.0",
     "@turf/area": "^7.4.0",
     "@turf/boolean-point-in-polygon": "^7.4.0",
     "@turf/kinks": "^7.4.0",
@@ -22,6 +23,7 @@
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
     "recharts": "^3.10.1",
+    "stripe": "^23.0.1",
     "terra-draw": "^1.38.0",
     "terra-draw-maplibre-gl-adapter": "^1.5.0",
     "zod": "^4.6.7"

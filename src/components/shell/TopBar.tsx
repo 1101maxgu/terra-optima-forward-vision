@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import { Bell, Leaf, CircleAlert, Info, Radio, Search, Sprout, TriangleAlert } from 'lucide-react'
+import { Bell, Leaf, CircleAlert, Info, Radio, Search, Sprout, TriangleAlert, UserRound } from 'lucide-react'
+import { useAuth } from '../../auth/AuthProvider'
 import { navigate } from '../../router'
 import { useFarm } from '../../state/farmStore'
 import { timeAgo } from '../../ui/kit'
@@ -9,6 +10,19 @@ export const ALERT_ICON: Record<FarmAlert['level'], { Icon: typeof Info; cls: st
   alert: { Icon: CircleAlert, cls: 'text-alert' },
   warn: { Icon: TriangleAlert, cls: 'text-sun' },
   info: { Icon: Info, cls: 'text-water' },
+}
+
+/** Account and plan. Shows the signed-in email's initial, or a person icon when signed out. */
+function AccountLink() {
+  const { email } = useAuth()
+  return (
+    <a href="#/account" aria-label="Account and plan" className="flex min-h-11 items-center gap-2 rounded-xl px-2 py-1 text-sm font-medium text-muted hover:bg-stale-soft">
+      <span aria-hidden className="grid size-9 place-items-center rounded-full bg-leaf-soft font-bold text-forest">
+        {email ? email[0].toUpperCase() : <UserRound className="size-5" />}
+      </span>
+      <span className="hidden max-w-40 truncate lg:inline">{email ?? 'Account'}</span>
+    </a>
+  )
 }
 
 /** Closes a popover on outside click or Escape. */
@@ -157,10 +171,7 @@ export default function TopBar() {
         </div>
         <div className="ml-auto flex items-center gap-1">
           <AlertsBell />
-          <span className="hidden items-center gap-2 rounded-xl px-2 py-1 text-sm font-medium text-muted lg:flex">
-            <span aria-hidden className="grid size-9 place-items-center rounded-full bg-leaf-soft font-bold text-forest">FA</span>
-            Farm account
-          </span>
+          <AccountLink />
         </div>
       </div>
       <div className="px-4 pb-3 md:hidden">

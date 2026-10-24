@@ -9,6 +9,7 @@ import { SOILS } from '../data/soils'
 import { formatArea } from '../map/geo'
 import { ErrorNote } from '../ui/controls'
 import { Card, HelpLink } from '../ui/kit'
+import PlanNudge from '../components/billing/PlanNudge'
 import { buildZone, DRAFT_KEY, firstInvalidStep, newDraft, parseDraft, serializeDraft, stepError, type WizardDraft } from '../components/wizard/draft'
 import { StepDetails, StepDraw, StepLocation, Stepper, StepReview, StepSensors } from '../components/wizard/Steps'
 import { errMsg } from '../components/sensors/SensorConnect'
@@ -39,8 +40,11 @@ function writeDraft(d: WizardDraft | null) {
 }
 
 export default function CreateZone() {
-  const { loading, loadError, reload } = useFarm()
+  const { loading, loadError, reload, zones, limits } = useFarm()
   const [run, setRun] = useState(0) // bump to start a fresh wizard ("Add another zone")
+  // Checked when a wizard starts, not live: the zone just created must not swap the success screen for the nudge.
+  const atLimit = limits?.zones != null && zones.length >= limits.zones
+  const [blocked, setBlocked] = useState<boolean | null>(null)
   if (loadError)
     return (
       <div className="mx-auto max-w-xl space-y-3 p-4">
@@ -49,7 +53,15 @@ export default function CreateZone() {
       </div>
     )
   if (loading) return <p className="flex items-center gap-2 p-6 text-muted"><Loader2 aria-hidden className="size-5 animate-spin" /> Loading…</p>
-  return <Wizard key={run} onAnother={() => setRun((r) => r + 1)} />
+  if (blocked ?? atLimit)
+    return (
+      <div className="mx-auto max-w-xl space-y-4 p-4">
+        <h1 className="text-xl font-bold">Create a new zone</h1>
+        <PlanNudge>{`The Free plan includes ${limits?.zones} zones, and this farm has ${zones.length}. Upgrade to Grower for unlimited zones.`}</PlanNudge>
+        <a href="#/zones" className="btn-secondary inline-flex min-h-11 items-center">Back to zones</a>
+      </div>
+    )
+  return <Wizard key={run} onAnother={() => { setBlocked(atLimit); setRun((r) => r + 1) }} />
 }
 
 function Wizard({ onAnother }: { onAnother: () => void }) {

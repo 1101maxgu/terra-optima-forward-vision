@@ -11,6 +11,8 @@ import Weather from './pages/Weather'
 import Reports from './pages/Reports'
 import Settings from './pages/Settings'
 import Help from './pages/Help'
+import Pricing from './pages/Pricing'
+import Account from './pages/Account'
 import ErrorBoundary from './ui/ErrorBoundary'
 
 function Page({ segments }: { segments: string[] }) {
@@ -26,6 +28,8 @@ function Page({ segments }: { segments: string[] }) {
   if (a === 'reports') return <Reports />
   if (a === 'settings') return <Settings />
   if (a === 'help') return <Help topic={b} />
+  if (a === 'pricing') return <Pricing />
+  if (a === 'account') return <Account />
   return <Home />
 }
 
