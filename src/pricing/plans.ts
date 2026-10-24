@@ -45,14 +45,13 @@ export interface Limits {
   zones: number | null // null = unlimited
   sensors: number
   historyDays: number
-  reports: boolean
 }
 
 /** Limits for a plan; Grower's sensor allowance grows with paid extra sensors. */
 export function limitsFor(plan: PlanId, extraSensors = 0): Limits {
   return plan === 'free'
-    ? { zones: FREE.zones, sensors: FREE.sensors, historyDays: FREE.historyDays, reports: false }
-    : { zones: null, sensors: GROWER.sensorsIncluded + Math.max(0, extraSensors), historyDays: GROWER.historyDays, reports: true }
+    ? { zones: FREE.zones, sensors: FREE.sensors, historyDays: FREE.historyDays }
+    : { zones: null, sensors: GROWER.sensorsIncluded + Math.max(0, extraSensors), historyDays: GROWER.historyDays }
 }
 
 export const needsGrower = (zones: number, sensors: number) => zones > FREE.zones || sensors > FREE.sensors

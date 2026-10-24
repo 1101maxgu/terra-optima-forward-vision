@@ -157,8 +157,8 @@ Setup (use test mode first):
    `invoice.payment_failed`. Copy the signing secret to `STRIPE_WEBHOOK_SECRET`.
 5. Set `STRIPE_SECRET_KEY` and `GEOVIVA_APP_URL`, redeploy, sign in, and buy Grower with test card 4242 4242 4242 4242.
 
-Plan rules: Free is 2 zones, 1 connected sensor (manual readings never count), 30 days of history. Grower is
-unlimited zones, 3 sensors plus paid extras, 1 year of history and reports. `past_due` keeps Grower for 7 days
+Plan rules: Free is 2 zones, 1 connected sensor (manual readings never count), 30 days of history and reports. Grower is
+unlimited zones, 3 sensors plus paid extras and 1 year of history. `past_due` keeps Grower for 7 days
 after the period ends. When a plan ends nothing is deleted: the newest zones and sensors past the Free limits
 become read-only (writes get `402 plan_read_only`, sensor uplinks are logged as `plan_limit`).
 

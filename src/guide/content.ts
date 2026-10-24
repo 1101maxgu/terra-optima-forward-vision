@@ -317,8 +317,8 @@ export const TOPICS: Topic[] = [
       {
         heading: 'The plans (Canadian dollars, plus GST/PST)',
         steps: [
-          `Free, $0: up to ${FREE.zones} zones, ${FREE.sensors} connected sensor, unlimited manual readings and CSV import, watering advice, weather, ${FREE.historyDays} days of history.`,
-          `Grower, ${money(GROWER.monthly)} a month or ${money(GROWER.yearly)} a year: unlimited zones, ${GROWER.sensorsIncluded} sensors included, reports, 1 year of history. For farms that already have sensors.`,
+          `Free, $0: up to ${FREE.zones} zones, ${FREE.sensors} connected sensor, unlimited manual readings and CSV import, watering advice, weather, reports, ${FREE.historyDays} days of history.`,
+          `Grower, ${money(GROWER.monthly)} a month or ${money(GROWER.yearly)} a year: unlimited zones, ${GROWER.sensorsIncluded} sensors included, 1 year of history. For farms that already have sensors.`,
           `Extra sensors on Grower: ${money(EXTRA_SENSOR.monthly)} a month or ${money(EXTRA_SENSOR.yearly)} a year each.`,
           `Starter bundle, ${money(BUNDLE.price)} once: ${BUNDLE.sensors} GeoViva sensors plus the first year of Grower.`,
           `Sensor only, ${money(SENSOR.price)} each: works on the Free plan. Shipping is ${money(SENSOR.shipping)} per order.`,
