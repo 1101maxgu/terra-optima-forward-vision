@@ -1,4 +1,4 @@
-// Tiny hash router: #/  #/zones  #/zones/new  #/zones/:id  #/zones/:id/boundary  #/sensors  #/reports  #/about  #/settings
+// Tiny hash router: #/  #/zones  #/zones/new  #/zones/:id  #/zones/:id/boundary  #/sensors  #/weather  #/reports  #/settings  #/help  #/help/:topic
 import { useEffect, useState } from 'react'
 
 export function navigate(path: string) {

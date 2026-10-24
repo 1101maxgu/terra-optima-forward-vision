@@ -10,6 +10,7 @@ import { CROPS } from '../../data/crops'
 import { SOILS } from '../../data/soils'
 import { EFFICIENCY, splitSessions } from '../../engine/irrigation'
 import WhyPanel from '../WhyPanel'
+import Luke from '../../guide/Luke'
 import { RingGauge } from './parts'
 import { SOIL_DRAINAGE, SOIL_TEXT } from './helpers'
 
@@ -210,7 +211,10 @@ export default function Overview({ zone, zs, onAddReading, onViewData }: { zone:
               <a href="#/sensors" className="inline-flex min-h-11 items-center gap-1 font-medium text-leaf">Manage <ChevronRight className="size-4" aria-hidden /></a>
             </div>
             {zs.sensors.length === 0 ? (
-              <p className="mt-2 text-muted">No sensors assigned to this zone. <a className="font-medium text-leaf underline" href="#/sensors">Connect a sensor</a> or add manual readings.</p>
+              <div className="mt-2 flex items-start gap-2">
+                <Luke className="size-9 shrink-0" />
+                <p className="text-muted">No sensors assigned to this zone. <a className="font-medium text-leaf underline" href="#/sensors">Connect a sensor</a> or add manual readings. <a className="font-medium text-water underline" href="#/help/hardware">How to install one</a></p>
+              </div>
             ) : (
               <ul className="mt-1 divide-y divide-line">
                 {zs.sensors.map((s) => {

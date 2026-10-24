@@ -36,6 +36,7 @@ export default function Reports() {
     <div className="flex flex-col gap-5">
       <PageHeader
         title="Reports"
+        help="weather-reports"
         subtitle="Water you applied and how complete your sensor data is."
         actions={
           <div role="tablist" aria-label="Period" className="flex rounded-xl border border-line bg-surface p-1">

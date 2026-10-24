@@ -4,7 +4,7 @@ import { ArrowLeft, Droplets, MapPinned, MoreVertical, Pencil, Plus, Trash2 } fr
 import type { Zone } from '../types'
 import { useFarm } from '../state/farmStore'
 import { navigate } from '../router'
-import { Card } from '../ui/kit'
+import { Card, HelpLink } from '../ui/kit'
 import { formatArea } from '../map/geo'
 import { SOILS } from '../data/soils'
 import { CROP_EMOJI } from '../components/zone/helpers'
@@ -57,7 +57,7 @@ export default function ZoneDetail({ zoneId }: { zoneId: string }) {
       <header className="flex items-center gap-3 sm:gap-4">
         <span className="grid size-14 shrink-0 place-items-center rounded-2xl bg-leaf-soft text-3xl sm:size-16 sm:text-4xl" aria-hidden>{CROP_EMOJI[zone.cropId]}</span>
         <div className="min-w-0 flex-1">
-          <h1 className="text-xl font-bold tracking-tight sm:text-2xl">{zone.name}</h1>
+          <h1 className="flex items-center gap-1 text-xl font-bold tracking-tight sm:text-2xl">{zone.name}<HelpLink topic="advice" label="Reading your advice" /></h1>
           <p className="text-muted">
             {formatArea(zone.areaM2)} • {SOILS[zone.soilId].name} • {zone.method === 'drip' ? 'Drip' : 'Sprinkler'}
           </p>

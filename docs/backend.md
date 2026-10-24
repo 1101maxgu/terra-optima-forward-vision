@@ -58,6 +58,7 @@ Validation errors return `400 {error:'invalid_request', details:[{path,message}]
 | POST | `/api/ingest/esp32/token` | factory secret | `{device_id, factory_secret}` returns `{token, ingestUrl}` (409 until claimed) |
 | POST | `/api/ingest/esp32` | device token | `{device_id, timestamp?, soil_moisture_percent, soil_temperature_c?, battery_percent?, depth_cm?}` |
 | POST | `/api/admin/devices` | `GEOVIVA_ADMIN_TOKEN` | `{deviceId}` returns `{claimCode, factorySecret}` once |
+| POST | `/api/assistant` | none (rate-limited per IP) | `{question, history?, context?}` returns `{answer}`. Needs only `ANTHROPIC_API_KEY` |
 
 Timestamps more than 5 minutes in the future are rejected. Moisture must be 0–100 %, soil temperature
 −40–85 °C and battery 0–100 %.

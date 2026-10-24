@@ -8,7 +8,7 @@ import { CROPS } from '../data/crops'
 import { SOILS } from '../data/soils'
 import { formatArea } from '../map/geo'
 import { ErrorNote } from '../ui/controls'
-import { Card } from '../ui/kit'
+import { Card, HelpLink } from '../ui/kit'
 import { buildZone, DRAFT_KEY, firstInvalidStep, newDraft, parseDraft, serializeDraft, stepError, type WizardDraft } from '../components/wizard/draft'
 import { StepDetails, StepDraw, StepLocation, Stepper, StepReview, StepSensors } from '../components/wizard/Steps'
 import { errMsg } from '../components/sensors/SensorConnect'
@@ -119,6 +119,7 @@ function Wizard({ onAnother }: { onAnother: () => void }) {
             <ArrowLeft aria-hidden className="size-6" />
           </button>
           <h1 className="text-xl font-bold sm:text-2xl">Create a new zone</h1>
+          <HelpLink topic="zones" label="Create a new zone" />
         </div>
         <Stepper step={d.step} canGo={canGo} onGo={go} />
 

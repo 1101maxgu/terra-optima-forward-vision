@@ -9,6 +9,8 @@ import { PageHeader, timeAgo } from '../ui/kit'
 import { BatteryText, ConnectivityBadge, latestSensorReading, TYPE_LABEL } from '../components/sensors/SensorMeta'
 import { errMsg, Esp32Connect, LorawanConnect, MethodCards } from '../components/sensors/SensorConnect'
 import SensorLocationPicker from '../components/sensors/SensorLocationPicker'
+import Luke from '../guide/Luke'
+import { openLuke } from '../guide/LukeChat'
 import type { ConnectMethod } from '../components/wizard/draft'
 
 type Tab = 'all' | 'lorawan' | 'esp32' | 'unassigned'
@@ -36,7 +38,7 @@ export default function Sensors() {
 
   return (
     <div className="mx-auto max-w-5xl space-y-4 px-4 py-4 sm:px-6 sm:py-6">
-      <PageHeader title="Sensors" subtitle="View and manage all sensors"
+      <PageHeader title="Sensors" subtitle="View and manage all sensors" help="sensors"
         actions={
           <button type="button" onClick={() => setAdding(true)} className="flex min-h-11 items-center gap-2 rounded-lg bg-forest px-4 font-semibold text-surface hover:bg-forest-2">
             <Plus aria-hidden className="size-5" /> Add sensor
@@ -60,10 +62,16 @@ export default function Sensors() {
       ) : loading ? (
         <p className="flex items-center gap-2 text-muted"><Loader2 aria-hidden className="size-5 animate-spin" /> Loading sensors…</p>
       ) : list.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-line bg-surface p-8 text-center">
+        <div className="flex flex-col items-center rounded-2xl border border-dashed border-line bg-surface p-8 text-center">
+          {sensors.length === 0 && <Luke className="mb-2 size-14" />}
           <p className="font-semibold">{sensors.length === 0 ? 'No sensors yet' : 'No sensors in this list'}</p>
           <p className="mt-1 text-muted">{sensors.length === 0 ? 'Add a sensor, or record manual readings without any hardware.' : 'Try another tab.'}</p>
           {sensors.length === 0 && <button type="button" className="btn-primary mt-4 min-h-11" onClick={() => setAdding(true)}>Add sensor</button>}
+          {sensors.length === 0 && (
+            <button type="button" onClick={() => openLuke('Which kind of sensor should I use, and how do I install it?')} className="mt-2 min-h-11 font-semibold text-water underline">
+              Ask Luke which sensor to use
+            </button>
+          )}
         </div>
       ) : (
         <ul className="divide-y divide-line overflow-hidden rounded-2xl border border-line bg-surface">

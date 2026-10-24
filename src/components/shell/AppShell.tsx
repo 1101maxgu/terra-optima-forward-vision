@@ -1,6 +1,8 @@
 import type { ReactNode } from 'react'
-import { ChartColumn, CloudSun, Ellipsis, House, Map as MapIcon, Radio, Settings } from 'lucide-react'
+import { ChartColumn, CircleHelp, CloudSun, Ellipsis, House, Map as MapIcon, Radio, Settings } from 'lucide-react'
 import { useFarm } from '../../state/farmStore'
+import LukeLauncher from '../../guide/LukeChat'
+import Tour from '../../guide/Tour'
 import TopBar, { Logo } from './TopBar'
 
 const NAV = [
@@ -10,14 +12,18 @@ const NAV = [
   { href: '/weather', label: 'Weather', Icon: CloudSun },
   { href: '/reports', label: 'Reports', Icon: ChartColumn },
   { href: '/settings', label: 'Settings', Icon: Settings },
+  { href: '/help', label: 'Help', Icon: CircleHelp },
 ]
 const MOBILE = [
   { href: '/', label: 'Home', Icon: House, also: [] as string[] },
   { href: '/zones', label: 'Zones', Icon: MapIcon, also: [] },
   { href: '/sensors', label: 'Sensors', Icon: Radio, also: [] },
   { href: '/reports', label: 'Reports', Icon: ChartColumn, also: [] },
-  { href: '/settings', label: 'More', Icon: Ellipsis, also: ['/weather'] },
+  { href: '/settings', label: 'More', Icon: Ellipsis, also: ['/weather', '/help'] },
 ]
+
+/** Anchor for the first-run tour (src/guide/Tour.tsx). */
+const tourId = (href: string) => `nav-${href === '/' ? 'home' : href.slice(1)}`
 
 const isActive = (path: string, href: string) => (href === '/' ? path === '/' : path === href || path.startsWith(`${href}/`))
 
@@ -62,6 +68,7 @@ export default function AppShell({ path, children }: { path: string; children: R
               <a
                 key={href}
                 href={`#${href}`}
+                data-tour={tourId(href)}
                 aria-current={on ? 'page' : undefined}
                 className={`flex min-h-12 items-center gap-3 rounded-xl px-3 text-base font-medium transition ${on ? 'bg-forest-2 text-white' : 'hover:bg-forest-2/60 hover:text-white'}`}
               >
@@ -92,6 +99,7 @@ export default function AppShell({ path, children }: { path: string; children: R
             <a
               key={href}
               href={`#${href}`}
+              data-tour={tourId(href)}
               aria-current={on ? 'page' : undefined}
               className={`flex min-h-16 flex-col items-center justify-center gap-1 text-xs font-semibold ${on ? 'text-forest' : 'text-muted'}`}
             >
@@ -103,6 +111,10 @@ export default function AppShell({ path, children }: { path: string; children: R
           )
         })}
       </nav>
+
+      {/* On phones the task flows' sticky Back/Next bar owns the bottom edge, so Luke steps aside there. */}
+      <LukeLauncher path={path} hidden={taskFlow} />
+      <Tour />
     </div>
   )
 }
