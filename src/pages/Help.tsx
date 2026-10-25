@@ -1,8 +1,9 @@
 // Route: #/help (topic list + search) and #/help/:topic. All text comes from src/guide/content.ts.
 import { useState } from 'react'
-import { ArrowLeft, ChevronRight, CloudSun, Cpu, Droplets, FlaskConical, Lightbulb, Map as MapIcon, Radio, Rocket, Search, Tag, TriangleAlert, WifiOff } from 'lucide-react'
+import { ArrowLeft, ChevronRight, CloudSun, Cpu, Droplets, FlaskConical, Lightbulb, Map as MapIcon, Play, Radio, Rocket, Search, Tag, TriangleAlert, WifiOff } from 'lucide-react'
 import { searchTopics, topicById, TOPICS, type Block, type IconKey } from '../guide/content'
 import { openLuke } from '../guide/LukeChat'
+import { startTour } from '../guide/Tour'
 import Luke from '../guide/Luke'
 import { Card, PageHeader } from '../ui/kit'
 
@@ -85,6 +86,9 @@ export default function Help({ topic }: { topic?: string }) {
       <div className="flex flex-wrap gap-2">
         <button type="button" onClick={() => openLuke()} className="btn-primary inline-flex min-h-12 items-center gap-2">
           <Luke className="size-7" /> Ask Luke
+        </button>
+        <button type="button" onClick={startTour} className="btn-secondary inline-flex min-h-12 items-center gap-2">
+          <Play aria-hidden className="size-5" /> Take the tour again
         </button>
       </div>
       <label className="relative block">

@@ -16,10 +16,10 @@ export function SectionTitle({ icon, title, action }: { icon?: ReactNode; title:
 
 export function StatCard({ icon, tone, value, label, sub }: { icon: ReactNode; tone: string; value: ReactNode; label: string; sub?: ReactNode }) {
   return (
-    <div className="flex items-center gap-3 rounded-2xl border border-line bg-surface p-3 sm:p-3.5">
-      <span className={`hidden size-11 shrink-0 place-items-center rounded-xl sm:grid ${tone}`}>{icon}</span>
+    <div className="flex items-center gap-3 rounded-2xl border border-line bg-surface p-3.5">
+      <span className={`grid size-11 shrink-0 place-items-center rounded-xl ${tone}`}>{icon}</span>
       <div className="min-w-0">
-        <div className="text-xl leading-tight font-bold tabular-nums sm:text-2xl">{value}</div>
+        <div className="truncate text-2xl font-bold tabular-nums">{value}</div>
         <div className="text-sm leading-tight font-medium">{label}</div>
         {sub && <div className="text-sm leading-tight text-muted">{sub}</div>}
       </div>

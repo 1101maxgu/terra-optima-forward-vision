@@ -5,7 +5,6 @@ import { Marker, Popup, type GeoJSONSource } from 'maplibre-gl'
 import type { FarmMapProps } from './index'
 import { BasemapToggle, FILL, MapNotice, useBaseMap } from './baseMap'
 import { mapConfig } from './config'
-import FieldOutline from './FieldOutline'
 import { bounds, polygonCenter } from './geo'
 import { STATUS, STATUS_HEX, timeAgo } from '../ui/kit'
 import type { GeoPolygon } from '../types'
@@ -24,7 +23,7 @@ export default function FarmMap(props: FarmMapProps) {
   const { zones, statuses, sensors, selectedZoneId = null, fallbackCenter, fit = 'all', className = 'h-80' } = props
   const cb = useRef(props)
   cb.current = props
-  const { containerRef, map, basemap, setBasemap, notice, allDown, dismissNotice } = useBaseMap({ center: fallbackCenter, zoom: mapConfig.defaultZoom, geolocate: true })
+  const { containerRef, map, basemap, setBasemap, notice, dismissNotice } = useBaseMap({ center: fallbackCenter, zoom: mapConfig.defaultZoom, geolocate: true })
   const labelMarkers = useRef<Marker[]>([])
   const sensorMarkers = useRef<Marker[]>([])
   const fitted = useRef(false)
@@ -142,9 +141,8 @@ export default function FarmMap(props: FarmMapProps) {
   return (
     <div className={`relative overflow-hidden rounded-2xl border border-line bg-stale-soft ${className}`}>
       <div ref={containerRef} style={FILL} role="region" aria-label="Farm map" />
-      {allDown && <FieldOutline zones={zones} statuses={statuses} onZoneClick={(id) => cb.current.onZoneClick?.(id)} />}
       <MapNotice text={notice} onClose={dismissNotice} />
-      {!allDown && <BasemapToggle value={basemap} onChange={setBasemap} className="absolute top-3 left-3 z-10" />}
+      <BasemapToggle value={basemap} onChange={setBasemap} className="absolute top-3 left-3 z-10" />
     </div>
   )
 }
