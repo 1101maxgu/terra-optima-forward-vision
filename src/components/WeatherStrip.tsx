@@ -1,6 +1,5 @@
 import { useFarm } from '../state/farmStore'
 import ProvenanceBadge from './ProvenanceBadge'
-import { useUnits } from '../ui/units'
 
 export function dayLabel(date: string, opts: Intl.DateTimeFormatOptions) {
   const [y, m, d] = date.split('-').map(Number)
@@ -8,7 +7,6 @@ export function dayLabel(date: string, opts: Intl.DateTimeFormatOptions) {
 }
 
 export default function WeatherStrip() {
-  const u = useUnits()
   const { weather, weatherLabel, weatherMode } = useFarm()
   const offline = weather.source !== 'live'
   return (
@@ -35,9 +33,9 @@ export default function WeatherStrip() {
             <div className="mt-2 text-xl font-semibold tabular-nums">{Math.round(d.tMaxC)}°</div>
             <div className="text-sm text-muted tabular-nums">{Math.round(d.tMinC)}°</div>
             <div className={`mt-2 text-sm font-medium tabular-nums ${d.rainMm >= 3 ? 'text-water' : 'text-muted'}`}>
-              {u.depth(Math.round(d.rainMm))} rain
+              {d.rainMm.toFixed(0)} mm rain
             </div>
-            <div className="text-sm text-muted tabular-nums">Dry-out {u.depth(Math.round(d.et0Mm * 10) / 10)}</div>
+            <div className="text-sm text-muted tabular-nums">Dry-out {d.et0Mm.toFixed(1)} mm</div>
           </li>
         ))}
       </ol>

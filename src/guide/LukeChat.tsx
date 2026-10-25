@@ -39,9 +39,10 @@ export default function LukeLauncher({ path, hidden }: { path: string; hidden?: 
         type="button"
         onClick={() => setOpen(true)}
         aria-label="Ask Luke, the help assistant"
-        className={`fixed right-3 bottom-[5.5rem] z-30 size-12 place-items-center md:size-14 rounded-full border border-line bg-surface shadow-lg transition hover:scale-105 md:right-6 md:bottom-6 ${hidden ? 'hidden md:grid' : 'grid'}`}
+        data-tour="luke"
+        className={`fixed right-4 bottom-20 z-30 size-14 place-items-center rounded-full border border-line bg-surface shadow-lg transition hover:scale-105 md:right-6 md:bottom-6 ${hidden ? 'hidden md:grid' : 'grid'}`}
       >
-        <Luke className="size-9 md:size-11" />
+        <Luke className="size-11" />
       </button>
       <Dialog open={open} onClose={() => setOpen(false)} title="Ask Luke">
         {open && <Chat path={path} draft={draft} onNavigate={() => setOpen(false)} />}

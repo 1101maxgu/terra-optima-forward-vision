@@ -5,7 +5,6 @@ import { navigate } from '../../router'
 import { useFarm } from '../../state/farmStore'
 import { timeAgo } from '../../ui/kit'
 import { useAlerts, type FarmAlert } from '../../ui/farm'
-import { useUnits } from '../../ui/units'
 
 export const ALERT_ICON: Record<FarmAlert['level'], { Icon: typeof Info; cls: string }> = {
   alert: { Icon: CircleAlert, cls: 'text-alert' },
@@ -105,7 +104,6 @@ function SearchBox() {
 }
 
 function AlertsBell() {
-  const u = useUnits()
   const alerts = useAlerts()
   const [open, setOpen] = useState(false)
   const ref = useDismiss(open, () => setOpen(false))
@@ -136,7 +134,7 @@ function AlertsBell() {
                   <li key={a.id}>
                     <a href={`#${a.href}`} onClick={() => setOpen(false)} className="flex gap-3 px-4 py-3 hover:bg-paper">
                       <Icon aria-hidden className={`mt-0.5 size-5 shrink-0 ${cls}`} />
-                      <span className="flex-1">{u.text(a.text)}</span>
+                      <span className="flex-1">{a.text}</span>
                       {a.at && <span className="text-sm whitespace-nowrap text-muted">{timeAgo(a.at)}</span>}
                     </a>
                   </li>

@@ -3,19 +3,17 @@ import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxi
 import { Activity, Droplets, Lock } from 'lucide-react'
 import { useFarm } from '../state/farmStore'
 import { CROPS } from '../data/crops'
-import { Card, PageHeader, SampleBanner } from '../ui/kit'
+import { Card, PageHeader, SampleBanner, fmtLitres } from '../ui/kit'
 import { CROP_EMOJI } from '../ui/farm'
 import { SectionTitle } from '../ui/widgets'
 import { HistoryCard, ProjectionCard } from '../components/Outcomes'
 import PlanNudge from '../components/billing/PlanNudge'
-import { useUnits } from '../ui/units'
 
 // Literal colour: SVG fills can't read CSS vars reliably. Keep in sync with --color-water.
 const WATER = '#0b6683'
 const DAY = 86_400_000
 
 export default function Reports() {
-  const u = useUnits()
   const { dataset, zones, events, readings, limits } = useFarm()
   const [days, setDays] = useState<7 | 30>(7)
   const [nudge, setNudge] = useState(false)
@@ -77,17 +75,17 @@ export default function Reports() {
           <HistoryCard days={days} />
           <Card>
             <SectionTitle icon={<Droplets aria-hidden className="size-5 text-water" />} title={`Water applied · last ${days} days`} />
-            <p className="mb-3 text-3xl font-bold tabular-nums">{u.volume(total)}</p>
+            <p className="mb-3 text-3xl font-bold tabular-nums">{fmtLitres(total)}</p>
             {total === 0 ? (
               <p className="text-muted">No irrigation logged in this period. Log watering from a field section's page.</p>
             ) : (
-              <div className="h-64 w-full" role="img" aria-label={`Litres applied per field section, total ${u.volume(total)}`}>
+              <div className="h-64 w-full" role="img" aria-label={`Litres applied per field section, total ${fmtLitres(total)}`}>
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={chart} margin={{ top: 8, right: 8, bottom: 0, left: 0 }}>
                     <CartesianGrid stroke="#e3e6dd" vertical={false} />
                     <XAxis dataKey="zone" tick={{ fontSize: 13, fill: '#4f5d56' }} />
                     <YAxis tick={{ fontSize: 12, fill: '#4f5d56' }} tickFormatter={(v: number) => (v >= 1000 ? `${Math.round(v / 1000)}k` : `${v}`)} width={44} />
-                    <Tooltip formatter={(v) => u.volume(Number(v))} cursor={{ fill: '#f6f4ec' }} />
+                    <Tooltip formatter={(v) => fmtLitres(Number(v))} cursor={{ fill: '#f6f4ec' }} />
                     <Bar dataKey="Litres" fill={WATER} radius={[6, 6, 0, 0]} isAnimationActive={false} />
                   </BarChart>
                 </ResponsiveContainer>
@@ -110,9 +108,9 @@ export default function Reports() {
                     </span>
                   </a>
                   <div>
-                    <div className="font-semibold tabular-nums">{u.volume(r.litres)}</div>
+                    <div className="font-semibold tabular-nums">{fmtLitres(r.litres)}</div>
                     <div className="text-sm text-muted tabular-nums">
-                      {u.depth(Math.round(r.mm))} · {r.count} event{r.count === 1 ? '' : 's'}
+                      {Math.round(r.mm)} mm · {r.count} event{r.count === 1 ? '' : 's'}
                     </div>
                   </div>
                   <div>
