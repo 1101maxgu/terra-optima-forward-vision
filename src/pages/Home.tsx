@@ -3,11 +3,12 @@ import { Activity, Bell, CalendarClock, ChartColumn, ChevronRight, CircleHelp, C
 import { useFarm, type ZoneStatus } from '../state/farmStore'
 import type { Zone } from '../types'
 import { FarmMap, MapSkeleton } from '../map'
-import { formatArea } from '../map/geo'
 import { splitSessions } from '../engine/irrigation'
 import { CROPS } from '../data/crops'
 import { navigate } from '../router'
-import { Card, SampleBanner, StatusPill, fmtLitres, fmtPct, timeAgo } from '../ui/kit'
+import { Card, SampleBanner, StatusPill, fmtPct, timeAgo } from '../ui/kit'
+import { useUnits } from '../ui/units'
+import { runText } from '../data/methods'
 import { CROP_EMOJI, STATUS_RANK, bestTime, greeting, shortName, useAlerts, useProjection } from '../ui/farm'
 import { ForecastMini, SectionTitle, StatCard, dayLook } from '../ui/widgets'
 import { ALERT_ICON } from '../components/shell/TopBar'
@@ -23,16 +24,18 @@ function checkReason(st: ZoneStatus) {
 }
 
 function Amount({ st, z }: Row) {
+  const u = useUnits()
   if (st.status === 'check-sensor') return <span className="text-stale">{checkReason(st)}</span>
   const rec = st.rec
   if (!rec || rec.grossMm <= 0) return <span className="text-muted">Not needed</span>
   const split = rec.grossMm > 20 ? splitSessions(rec.grossMm, z.areaM2) : null
   return (
     <span>
-      <span className="font-semibold tabular-nums">{rec.grossMm} mm</span> <span className="text-muted tabular-nums">({fmtLitres(rec.litres)})</span>
+      <span className="block font-semibold">{runText(rec.grossMm, z.method, split?.sessions)}</span>
+      <span className="tabular-nums">{u.depth(rec.grossMm)}</span> <span className="text-muted tabular-nums">({u.volume(rec.litres)})</span>
       {split && (
         <span className="block text-sm text-muted">
-          Split into {split.sessions} × {split.mmEach} mm
+          Split into {split.sessions} × {u.depth(split.mmEach)}
         </span>
       )}
     </span>
@@ -42,6 +45,7 @@ function Amount({ st, z }: Row) {
 export default function Home() {
   const { farm, zones, sensors, readings, weather, dataset, setDataset, zoneStatus, sensorState } = useFarm()
   const alerts = useAlerts()
+  const u = useUnits()
   const rows: Row[] = zones.map((z) => ({ z, st: zoneStatus(z.id) }))
   const byUrgency = [...rows].sort((a, b) => STATUS_RANK[a.st.status] - STATUS_RANK[b.st.status] || (b.st.rec?.grossMm ?? 0) - (a.st.rec?.grossMm ?? 0))
 
@@ -102,7 +106,7 @@ export default function Home() {
           tone="bg-water-soft text-water"
           value={online}
           label="Active sensors"
-          sub={offline > 0 ? <span className="font-semibold text-alert">{offline} offline</span> : `of ${sensors.length} total`}
+          sub={offline > 0 ? <span className="font-semibold text-alert">{offline} not reporting</span> : `of ${sensors.length} total`}
         />
         <StatCard
           icon={<Droplets className="size-6" />}
@@ -116,7 +120,7 @@ export default function Home() {
           tone={next?.st.status === 'water-today' ? 'bg-alert-soft text-alert' : 'bg-sun-soft text-sun'}
           value={next ? (next.st.status === 'water-today' ? 'Today' : 'Within 48 h') : 'None due'}
           label="Next irrigation"
-          sub={next?.st.rec ? `${shortName(next.z.name)} · ${next.st.rec.grossMm} mm` : 'No field section needs water now'}
+          sub={next?.st.rec ? `${shortName(next.z.name)} · ${u.depth(next.st.rec.grossMm)}` : 'No field section needs water now'}
         />
         <StatCard
           icon={look ? <look.Icon className="size-6" /> : <CloudSun className="size-6" />}
@@ -165,7 +169,7 @@ export default function Home() {
                     <span className="min-w-0 flex-1">
                       <span className="block font-semibold">{shortName(z.name)}</span>
                       <span className="block text-sm text-muted">
-                        {CROPS[z.cropId].name} · {formatArea(z.areaM2)}
+                        {CROPS[z.cropId].name} · {u.area(z.areaM2)}
                       </span>
                       <span className="mt-1 block">
                         <StatusPill status={st.status} size="sm" />
@@ -302,7 +306,7 @@ export default function Home() {
                     <li key={a.id}>
                       <a href={`#${a.href}`} className="flex min-h-12 items-start gap-3 rounded-xl px-2 py-2 text-sm hover:bg-paper">
                         <Icon aria-hidden className={`size-5 shrink-0 ${cls}`} />
-                        <span className="flex-1">{a.text}</span>
+                        <span className="flex-1">{u.text(a.text)}</span>
                         {a.at && <span className="whitespace-nowrap text-muted">{timeAgo(a.at)}</span>}
                       </a>
                     </li>
@@ -320,6 +324,7 @@ export default function Home() {
 /** One-line projected outcome; details on Reports. Hidden until a zone has a reading to project from. */
 function OutcomeTile() {
   const p = useProjection()
+  const u = useUnits()
   if (!p.zones.length) return null
   const s = p.saved
   return (
@@ -327,7 +332,7 @@ function OutcomeTile() {
       <TrendingDown aria-hidden className="size-6 shrink-0 text-water" />
       <span className="font-semibold">Next 14 days vs a fixed schedule:</span>
       <span className="tabular-nums">
-        {s.litres >= 0 ? `${fmtLitres(s.litres)} less water` : `${fmtLitres(-s.litres)} more water`} · {s.events >= 0 ? `${s.events} fewer waterings` : `${-s.events} more waterings`} · {Math.round(s.labourH * 10) / 10} h labour
+        {s.litres >= 0 ? `${u.volume(s.litres)} less water` : `${u.volume(-s.litres)} more water`} · {s.events >= 0 ? `${s.events} fewer waterings` : `${-s.events} more waterings`} · {Math.round(s.labourH * 10) / 10} h labour
       </span>
       <ProvenanceBadge p="projected" />
       <span className="ml-auto inline-flex items-center gap-1 font-semibold text-leaf">See report <ChevronRight aria-hidden className="size-4" /></span>
