@@ -20,7 +20,7 @@ const MOBILE = [
   { href: '/zones', label: 'Fields', Icon: MapIcon, also: [] },
   { href: '/sensors', label: 'Sensors', Icon: Radio, also: [] },
   { href: '/reports', label: 'Reports', Icon: ChartColumn, also: [] },
-  { href: '/settings', label: 'More', Icon: Ellipsis, also: ['/weather', '/help', '/pricing', '/account'] },
+  { href: '/more', label: 'More', Icon: Ellipsis, also: ['/settings', '/weather', '/help', '/pricing', '/account'] },
 ]
 
 /** Anchor for the first-run tour (src/guide/Tour.tsx). */

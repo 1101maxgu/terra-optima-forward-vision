@@ -13,6 +13,7 @@ import Settings from './pages/Settings'
 import Help from './pages/Help'
 import Pricing from './pages/Pricing'
 import Account from './pages/Account'
+import More from './pages/More'
 import ErrorBoundary from './ui/ErrorBoundary'
 
 function Page({ segments }: { segments: string[] }) {
@@ -30,6 +31,7 @@ function Page({ segments }: { segments: string[] }) {
   if (a === 'help') return <Help topic={b} />
   if (a === 'pricing') return <Pricing />
   if (a === 'account') return <Account />
+  if (a === 'more') return <More />
   return <Home />
 }
 

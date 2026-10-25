@@ -1,5 +1,5 @@
 import { Suspense } from 'react'
-import { Activity, Bell, CalendarClock, ChartColumn, ChevronRight, CloudSun, Droplets, Map as MapIcon, Plus, Radio, Sprout, TrendingDown } from 'lucide-react'
+import { Activity, Bell, CalendarClock, ChartColumn, ChevronRight, CircleHelp, CloudSun, Droplets, Map as MapIcon, Play, Plus, Radio, Sprout, Tag, TrendingDown } from 'lucide-react'
 import { useFarm, type ZoneStatus } from '../state/farmStore'
 import type { Zone } from '../types'
 import { FarmMap, MapSkeleton } from '../map'
@@ -66,12 +66,13 @@ export default function Home() {
   return (
     <div className="flex flex-col gap-5">
       {dataset === 'sample' && <SampleBanner />}
-      {dataset === 'mine' && zones.length === 0 && (
-        <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-line bg-leaf-soft p-4">
-          <p className="min-w-0 flex-1 basis-60 font-semibold">New here? See GeoViva working on a sample farm first.</p>
-          <button type="button" onClick={() => setDataset('sample')} className="btn-primary min-h-12">Try the demo farm</button>
-        </div>
-      )}
+      <div className="flex flex-wrap items-center gap-2">
+        <button type="button" onClick={() => setDataset(dataset === 'sample' ? 'mine' : 'sample')} className="btn-primary inline-flex min-h-12 items-center gap-2">
+          <Play aria-hidden className="size-5" /> {dataset === 'sample' ? 'Back to my farm' : 'View the demo farm'}
+        </button>
+        <a href="#/help" className="btn-secondary inline-flex min-h-12 items-center gap-2"><CircleHelp aria-hidden className="size-5" /> Help</a>
+        <a href="#/pricing" className="btn-secondary inline-flex min-h-12 items-center gap-2"><Tag aria-hidden className="size-5" /> Plans and pricing</a>
+      </div>
 
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
