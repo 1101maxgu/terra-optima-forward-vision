@@ -18,7 +18,7 @@ const IDS: BasemapId[] = ['standard', 'satellite']
 
 export const MSG_SAT_DOWN = 'Satellite imagery unavailable — switched to standard map.'
 export const MSG_STD_DOWN = 'Standard map unavailable — switched to satellite.'
-export const MSG_ALL_DOWN = 'Map tiles couldn’t load. Your boundaries are still saved.'
+export const MSG_ALL_DOWN = 'Map picture unavailable. Showing field outlines instead.'
 
 function buildStyle(active: BasemapId): StyleSpecification {
   const src = (b: Basemap) => ({ type: 'raster' as const, tiles: b.tiles, tileSize: b.tileSize, maxzoom: b.maxzoom, attribution: b.attribution })
@@ -114,7 +114,7 @@ export function useBaseMap({ center, zoom, initialBasemap = 'satellite', geoloca
     show(id)
   }
 
-  return { containerRef, map, basemap, setBasemap, notice, dismissNotice: () => setNotice(null) }
+  return { containerRef, map, basemap, setBasemap, notice, allDown: notice === MSG_ALL_DOWN || dead.current.size === IDS.length, dismissNotice: () => setNotice(null) }
 }
 
 export function BasemapToggle({ value, onChange, className = '' }: { value: BasemapId; onChange: (id: BasemapId) => void; className?: string }) {

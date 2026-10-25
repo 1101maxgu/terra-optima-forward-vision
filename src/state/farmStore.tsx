@@ -1,6 +1,7 @@
 // App state (integrator-owned). Components read everything through useFarm().
 // Persistence goes through FarmRepository (src/data/repo.ts); this file holds derived state.
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import type { Units } from '../ui/units'
 import type {
   FarmData, FarmerStatus, FixedSchedule, Freshness, IrrigationEvent, Reading, Recommendation, Sensor, SensorAssessment, SensorReading, Weather, Zone,
 } from '../types'
@@ -44,6 +45,7 @@ interface UiPrefs {
   weatherMode: WeatherMode
   acks: Acks
   outcomes: OutcomeSettings
+  units: Units
 }
 /** Baseline schedule and cost assumptions for the outcomes report; editable in Settings. */
 export interface OutcomeSettings {
@@ -51,7 +53,7 @@ export interface OutcomeSettings {
   costs: CostAssumptions
 }
 export const OUTCOME_DEFAULTS: OutcomeSettings = { schedule: DEFAULT_SCHEDULE, costs: DEFAULT_COSTS }
-const UI_DEFAULTS: UiPrefs = { dataset: 'sample', weatherMode: 'sample', acks: {}, outcomes: OUTCOME_DEFAULTS }
+const UI_DEFAULTS: UiPrefs = { dataset: 'sample', weatherMode: 'sample', acks: {}, outcomes: OUTCOME_DEFAULTS, units: 'metric' }
 
 /** Keeps only known, finite, non-negative numbers; anything else falls back to the default. */
 export function cleanOutcomeSettings(p: unknown): OutcomeSettings {
@@ -74,6 +76,7 @@ function loadUi(): UiPrefs {
       weatherMode: p.weatherMode === 'live' ? 'live' : 'sample',
       acks: p.acks && typeof p.acks === 'object' ? p.acks : {},
       outcomes: cleanOutcomeSettings(p.outcomes),
+      units: p.units === 'imperial' ? 'imperial' : 'metric',
     }
   } catch {
     return UI_DEFAULTS
@@ -330,6 +333,8 @@ function useFarmState() {
     weatherMode: ui.weatherMode,
     weatherLabel: weather.source === 'bundled' ? sampleWeather.label : `Live forecast (${weather.source})`,
     setWeatherMode: (weatherMode: WeatherMode) => patchUi({ weatherMode }),
+    units: ui.units,
+    setUnits: (units: Units) => patchUi({ units }),
     /** Regenerates the sample farm. Never touches the farmer's own data. */
     resetDemo: () => {
       resetSample()

@@ -3,9 +3,11 @@ import { AlertTriangle, BatteryMedium, CalendarDays, ChevronRight, CloudRain, Cl
 import type { Zone } from '../../types'
 import { useFarm, type ZoneStatus } from '../../state/farmStore'
 import { navigate } from '../../router'
-import { Card, FreshnessText, STATUS_HEX, StatusPill, fmtLitres, timeAgo } from '../../ui/kit'
+import { Card, FreshnessText, STATUS_HEX, StatusPill, timeAgo } from '../../ui/kit'
+import { useUnits } from '../../ui/units'
+import { runText } from '../../data/methods'
 import { FarmMap, MapSkeleton } from '../../map'
-import { formatArea, pointInPolygon } from '../../map/geo'
+import { pointInPolygon } from '../../map/geo'
 import { CROPS } from '../../data/crops'
 import { SOILS } from '../../data/soils'
 import { EFFICIENCY, splitSessions } from '../../engine/irrigation'
@@ -30,6 +32,7 @@ export function checkReason(zs: ZoneStatus, offline: number): string {
 /** Plain-language recommendation; shared by Overview and Irrigation tabs. */
 export function RecommendationCard({ zone, zs, onAddReading }: { zone: Zone; zs: ZoneStatus; onAddReading: () => void }) {
   const { sensorState } = useFarm()
+  const u = useUnits()
   const rec = zs.rec
   const offline = zs.sensors.filter((s) => sensorState(s) !== 'online').length
   const check = zs.status === 'check-sensor'
@@ -55,24 +58,27 @@ export function RecommendationCard({ zone, zs, onAddReading }: { zone: Zone; zs:
         <div className={check ? 'mt-4 opacity-70' : 'mt-4'}>
           {check && zs.lastUpdate && <p className="mb-2 text-sm text-muted">Based on the last reading ({timeAgo(zs.lastUpdate)}) — confirm before acting:</p>}
           {watering ? (
+            <>
+            <p className="mb-3 rounded-xl bg-water-soft p-3 text-lg font-bold text-water">{runText(rec.grossMm, zone.method, split?.sessions)}</p>
             <dl className="grid grid-cols-2 gap-3">
               <div className="rounded-xl bg-water-soft p-3">
                 <dt className="text-sm text-muted">Apply</dt>
-                <dd className="text-3xl font-bold tabular-nums text-water">{rec.grossMm} mm</dd>
+                <dd className="text-3xl font-bold tabular-nums text-water">{u.depth(rec.grossMm)}</dd>
               </div>
               <div className="rounded-xl bg-water-soft p-3">
                 <dt className="text-sm text-muted">Volume</dt>
-                <dd className="text-3xl font-bold tabular-nums text-water">{fmtLitres(rec.litres)}</dd>
+                <dd className="text-3xl font-bold tabular-nums text-water">{u.volume(rec.litres)}</dd>
               </div>
             </dl>
+            </>
           ) : (
             <p className="text-2xl font-bold">No water needed for the next 48 h</p>
           )}
           {split && split.sessions > 1 && (
-            <p className="mt-3 text-sm">Split into <b>{split.sessions} sessions</b> of about {split.mmEach} mm ({fmtLitres(split.litresEach)} each) to avoid runoff.</p>
+            <p className="mt-3 text-sm">Split into <b>{split.sessions} sessions</b> of about {u.depth(split.mmEach)} ({u.volume(split.litresEach)} each) to avoid runoff.</p>
           )}
-          <p className="mt-3"><span className="text-muted">Best time: </span><b>{rec.timing}</b></p>
-          <p className="mt-2 text-muted">{rec.summary}</p>
+          <p className="mt-3"><span className="text-muted">Best time: </span><b>{u.text(rec.timing)}</b></p>
+          <p className="mt-2 text-muted">{u.text(rec.summary)}</p>
           {!check && <Hedge zs={zs} />}
         </div>
       )}
@@ -105,6 +111,7 @@ const WHEN: Record<ZoneStatus['status'], string> = {
 
 export default function Overview({ zone, zs, onAddReading, onViewData }: { zone: Zone; zs: ZoneStatus; onAddReading: () => void; onViewData: () => void }) {
   const { farm, sensorState, weather, weatherLabel, assessments } = useFarm()
+  const u = useUnits()
   const soil = SOILS[zone.soilId]
   const crop = CROPS[zone.cropId]
   const rec = zs.rec
@@ -130,7 +137,7 @@ export default function Overview({ zone, zs, onAddReading, onViewData }: { zone:
               <Suspense fallback={<MapSkeleton className="h-64 sm:h-80" />}>
                 <FarmMap
                   zones={[zone]}
-                  statuses={{ [zone.id]: { status: zs.status, label: formatArea(zone.areaM2) } }}
+                  statuses={{ [zone.id]: { status: zs.status, label: u.area(zone.areaM2) } }}
                   sensors={placed}
                   selectedZoneId={zone.id}
                   fit="selected"
@@ -183,8 +190,8 @@ export default function Overview({ zone, zs, onAddReading, onViewData }: { zone:
               <p className="text-xl font-bold">{WHEN[zs.status]}</p>
               {rec && rec.grossMm > 0 && zs.status !== 'check-sensor' ? (
                 <>
-                  <p className="font-semibold tabular-nums">{rec.grossMm} mm</p>
-                  <p className="text-sm text-muted tabular-nums">(≈ {fmtLitres(rec.litres)})</p>
+                  <p className="font-semibold tabular-nums">{u.depth(rec.grossMm)}</p>
+                  <p className="text-sm text-muted tabular-nums">(≈ {u.volume(rec.litres)})</p>
                 </>
               ) : (
                 <p className="text-sm text-muted">{zs.status === 'check-sensor' ? 'Needs a fresh moisture reading' : 'Soil has enough water for 48 h'}</p>
@@ -199,7 +206,7 @@ export default function Overview({ zone, zs, onAddReading, onViewData }: { zone:
               <wx.Icon className={`size-12 shrink-0 ${wx.ic}`} aria-hidden />
               <div>
                 <p className="text-xl font-bold tabular-nums">{Math.round(today.tMaxC)}°C <span className="text-base font-normal text-muted">/ {Math.round(today.tMinC)}°</span></p>
-                <p className="text-sm text-muted tabular-nums">Rain next 48 h: {rain48} mm</p>
+                <p className="text-sm text-muted tabular-nums">Rain next 48 h: {u.depth(rain48)}</p>
                 <span className={`mt-1 inline-block rounded-full px-2.5 py-0.5 text-sm font-semibold ${wx.cls}`}>{wx.chip}</span>
               </div>
             </div>
@@ -215,7 +222,7 @@ export default function Overview({ zone, zs, onAddReading, onViewData }: { zone:
             <div>
               <p className="text-xl font-bold">{soil.name}</p>
               <p className="font-medium">{SOIL_DRAINAGE[soil.id]}</p>
-              <p className="text-sm text-muted">{rec ? `Holds ${Math.round(rec.tawMm)} mm in the root field section` : SOIL_TEXT[soil.id]}</p>
+              <p className="text-sm text-muted">{rec ? `Holds ${u.depth(Math.round(rec.tawMm))} of water where the roots are` : SOIL_TEXT[soil.id]}</p>
             </div>
           </div>
         </Card>
