@@ -18,7 +18,7 @@ export function openLuke(question?: string) {
 
 type Msg = ChatTurn | { role: 'fallback'; text: string; topics: Topic[] }
 
-const GREETING = 'Hi, I’m Luke! Ask me anything about using GeoViva, your watering advice, or setting up a sensor.'
+const GREETING = 'Hi, I’m Luke! Ask me about your watering advice, your crops and soil, or setting up a sensor.'
 
 export default function LukeLauncher({ path, hidden }: { path: string; hidden?: boolean }) {
   const [open, setOpen] = useState(false)
@@ -70,7 +70,7 @@ function Chat({ path, draft, onNavigate }: { path: string; draft: string; onNavi
     setBusy(true)
     try {
       const context = buildContext({ ...farm, route: path })
-      const answer = await askLuke(q, history, context)
+      const answer = await askLuke(q, history, context, farm.dataset === 'sample')
       setMsgs((m) => [...m, { role: 'assistant', text: answer }])
     } catch (err) {
       const topics = searchTopics(q).slice(0, 3)
@@ -100,7 +100,7 @@ function Chat({ path, draft, onNavigate }: { path: string; draft: string; onNavi
       <div className="flex max-h-[55vh] min-h-48 flex-col gap-3 overflow-y-auto" aria-live="polite">
         <Bubble from="luke">{GREETING}</Bubble>
         {farm.dataset === 'sample' && (
-          <p className="text-center text-xs text-muted">You’re on the Sample farm, so Luke answers from the guide only.</p>
+          <p className="text-center text-xs text-muted">You’re on the Sample farm. Luke answers about its fictional crops, soils and weather.</p>
         )}
         {msgs.map((m, i) =>
           m.role !== 'fallback' ? (

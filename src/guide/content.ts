@@ -318,7 +318,7 @@ export const TOPICS: Topic[] = [
         heading: 'The plans (Canadian dollars, plus GST/PST)',
         steps: [
           `Free, $0: as many sections of your field as you like, as many sensors as you like, unlimited typed-in readings and spreadsheet uploads, watering advice, weather, reports for the last ${FREE.reportDays} days, ${FREE.historyDays} days of history. Luke and text alerts are not included.`,
-          `Season plan, ${money(SEASON.price)} for the whole farm for one season of ${SEASON.months} months: everything in Free, plus Luke, text alerts, ${SEASON.reportDays}-day reports and 1 year of history.`,
+          `Season plan, ${money(SEASON.price)} for the whole farm for one season of ${SEASON.months} months: everything in Free, plus Luke with detailed, crop-specific watering advice, text alerts, ${SEASON.reportDays}-day reports and 1 year of history.`,
           `Sensor rental, ${money(RENTAL.price)} per sensor per season, on any plan. Shipping is included. You never buy the hardware.`,
         ],
       },

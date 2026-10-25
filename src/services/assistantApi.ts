@@ -23,11 +23,10 @@ export interface ContextInput {
 }
 
 /**
- * Plain-text snapshot of the farmer's data for Luke. Sample farm: nothing (Luke answers from the guide).
+ * Plain-text snapshot of the farmer's data for Luke. The Sample farm is described too, so the demo can show detailed answers.
  * On a zone page only that zone is described in detail; elsewhere a one-line summary per zone.
  */
-export function buildContext({ dataset, route, zones, sensors, zoneStatus, sensorState, now = Date.now() }: ContextInput): string | undefined {
-  if (dataset === 'sample') return undefined
+export function buildContext({ route, zones, sensors, zoneStatus, sensorState, now = Date.now() }: ContextInput): string | undefined {
   const lines = [`Screen: ${route}`]
   const openZone = zones.find((z) => route.startsWith(`/zones/${z.id}`))
   for (const z of openZone ? [openZone] : zones) {
@@ -51,7 +50,7 @@ export function buildContext({ dataset, route, zones, sensors, zoneStatus, senso
 
 const base = () => String(import.meta.env.VITE_API_URL ?? '').replace(/\/$/, '')
 
-export async function askLuke(question: string, history: ChatTurn[], context?: string): Promise<string> {
+export async function askLuke(question: string, history: ChatTurn[], context?: string, demo = false): Promise<string> {
   if (!navigator.onLine) throw new AssistantUnavailableError('offline')
   const token = await getAuthToken() // signed-in farmers get their own (and on Grower, a higher) question limit
   let res: Response
@@ -59,7 +58,7 @@ export async function askLuke(question: string, history: ChatTurn[], context?: s
     res = await fetch(`${base()}/api/assistant`, {
       method: 'POST',
       headers: { 'content-type': 'application/json', ...(token ? { authorization: `Bearer ${token}` } : {}) },
-      body: JSON.stringify({ question, history: history.slice(-12), context }),
+      body: JSON.stringify({ question, history: history.slice(-12), context, demo }),
     })
   } catch {
     throw new AssistantUnavailableError('network')

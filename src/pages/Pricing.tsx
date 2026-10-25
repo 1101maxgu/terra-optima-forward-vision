@@ -54,7 +54,7 @@ const PLANS: PlanCard[] = [
     price: <Price amount={money(SEASON.price)} per="a season" note={`One price for the whole farm. A season is ${SEASON.months} months.`} />,
     includes: [
       'Everything in Free',
-      'Luke, the AI assistant, answers your questions in plain words',
+      'Luke, the AI assistant, gives detailed watering advice for your crops and soil, using a large crop and soil reference library',
       'Text alerts on your phone when soil is too dry or too wet',
       `${SEASON.reportDays}-day reports for each section`,
       `${SEASON.historyDays / 365} year of history`,
