@@ -29,8 +29,8 @@ const zs: ZoneStatus = {
 }
 const base: ContextInput = { dataset: 'mine', route: '/', zones: [zone, other], sensors: [sensor], zoneStatus: () => zs, sensorState: () => 'online' }
 
-it('sends no farm data for the Sample farm', () => {
-  expect(buildContext({ ...base, dataset: 'sample' })).toBeUndefined()
+it('describes the Sample farm too, so the demo can show detailed answers', () => {
+  expect(buildContext({ ...base, dataset: 'sample' })).toContain('Screen: /')
 })
 
 it('summarises all zones on general screens, without sensor detail', () => {

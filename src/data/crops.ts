@@ -1,6 +1,6 @@
 // Crop constants. See docs/sources.md for how each value was chosen.
 // To be reviewed by an agronomist before field use.
-import type { Crop, CropId } from '../types'
+import type { Crop, CropId } from '../types.js'
 
 export const CROPS: Record<CropId, Crop> = {
   tomato: {

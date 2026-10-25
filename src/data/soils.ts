@@ -1,7 +1,7 @@
 // Soil constants. Each value falls within the FAO-56 Table 19 range, chosen so that
 // FC − WP matches the BC available water storage capacity (Factsheet 619.000-1, Table 2).
 // To be reviewed by an agronomist before field use.
-import type { Soil, SoilId } from '../types'
+import type { Soil, SoilId } from '../types.js'
 
 export const SOILS: Record<SoilId, Soil> = {
   'sandy-loam': {

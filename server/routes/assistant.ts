@@ -2,6 +2,7 @@
 // even before the rest of the backend is provisioned. Read-only: it answers, it never changes farm data.
 import Anthropic from '@anthropic-ai/sdk'
 import { z } from 'zod'
+import { knowledgeText } from '../../src/data/agroKnowledge.js'
 import { TOPICS } from '../../src/guide/content.js'
 import type { Deps } from '../context.js'
 import { planFor } from '../entitlements.js'
@@ -14,6 +15,8 @@ const request = z.object({
   history: z.array(z.object({ role: z.enum(['user', 'assistant']), text: z.string().max(4000) })).max(12).default([]),
   // Plain-text snapshot of what the farmer is looking at, built by the browser. Absent for the Sample farm.
   context: z.string().max(6000).optional(),
+  // The browser says it is showing the fictional Sample farm, so the demo can show the detailed answers.
+  demo: z.boolean().optional(),
 })
 
 const guideText = TOPICS.map((t) =>
@@ -41,6 +44,21 @@ What you don't do:
 ${guideText}
 </guide>`
 
+// Season plan farms (and the Sample farm demo) get this on top: detailed, crop-specific watering recommendations
+// drawn from a larger reference library. Still frozen text, so it caches separately.
+const DETAILED = `
+
+Detailed mode (this farmer has the Season plan):
+- You may now give detailed, crop-specific watering recommendations, not only explain the app. Use the farm data, the weather in it, and the reference library below. Say what to do, how much, when, and why, in plain words.
+- Look at the crop, soil, watering method and growth stage together. Say what to watch for and what mistakes to avoid. Use the numbers in the farm data. Never invent a reading.
+- Mention where a number comes from in a few words, for example "from the FAO crop tables".
+- Still do not give advice on pests, disease treatment, fertiliser or chemicals. Suggest their local extension office or advisor for those.
+- The library is reference information, not a field-tested forecast. When the farm's own readings disagree with it, trust the readings.
+
+<reference_library>
+${knowledgeText()}
+</reference_library>`
+
 // Best-effort limit per signed-in user (per IP when signed out). Serverless instances don't share memory,
 // so this caps bursts, not totals. Grower farms get more room.
 const WINDOW_MS = 10 * 60_000
@@ -56,17 +74,17 @@ function rateLimit(key: string, max: number, now: number) {
 let client: Anthropic | undefined
 
 /** Who is asking, and on which plan. Unknown or invalid tokens fall back to the per-IP Free limit. */
-async function caller(req: Request, deps: Deps | null): Promise<{ key: string; max: number }> {
+async function caller(req: Request, deps: Deps | null): Promise<{ key: string; max: number; paid: boolean }> {
   const ip = req.headers.get('x-forwarded-for')?.split(',')[0].trim() || 'unknown'
   const token = bearer(req)
-  if (!deps || !token) return { key: `ip:${ip}`, max: MAX_PER_WINDOW.free }
+  if (!deps || !token) return { key: `ip:${ip}`, max: MAX_PER_WINDOW.free, paid: false }
   try {
     const { userId } = await deps.verifyToken(token)
     const [farm] = await deps.db<{ farm_id: string }[]>`select farm_id from farm_members where user_id = ${userId} order by created_at limit 1`
     const plan = farm ? (await planFor(deps.db, farm.farm_id, deps.now())).plan : 'free'
-    return { key: `user:${userId}`, max: MAX_PER_WINDOW[plan] }
+    return { key: `user:${userId}`, max: MAX_PER_WINDOW[plan], paid: plan === 'grower' }
   } catch {
-    return { key: `ip:${ip}`, max: MAX_PER_WINDOW.free }
+    return { key: `ip:${ip}`, max: MAX_PER_WINDOW.free, paid: false }
   }
 }
 
@@ -89,9 +107,9 @@ export async function ask(req: Request, deps: Deps | null, env: NodeJS.ProcessEn
   client ??= new Anthropic({ apiKey: env.ANTHROPIC_API_KEY })
   const params = {
     model: MODEL,
-    max_tokens: 2000,
+    max_tokens: who.paid || input.demo ? 3000 : 2000,
     output_config: { effort: 'low' as const },
-    system: [{ type: 'text' as const, text: SYSTEM, cache_control: { type: 'ephemeral' as const } }],
+    system: [{ type: 'text' as const, text: who.paid || input.demo ? SYSTEM + DETAILED : SYSTEM, cache_control: { type: 'ephemeral' as const } }],
     messages,
     betas: ['server-side-fallback-2026-07-01'],
     fallbacks: 'default' as const, // re-runs on a fallback model if a safety classifier declines

@@ -1,10 +1,10 @@
 // FAO-56 root-zone water balance. Pure and deterministic. Constants: src/data, docs/sources.md.
 import { CROPS } from '../data/crops'
 import { SOILS } from '../data/soils'
+import { EFFICIENCY } from '../data/methods'
 import type {
   Factor,
   FixedSchedule,
-  IrrigationMethod,
   Reading,
   Recommendation,
   RecStatus,
@@ -14,8 +14,7 @@ import type {
   Zone,
 } from '../types'
 
-/** Application efficiency by method (water reaching the root zone / water pumped). */
-export const EFFICIENCY: Record<IrrigationMethod, number> = { drip: 0.9, sprinkler: 0.75 }
+export { EFFICIENCY }
 
 /** ET0 used when the forecast is short or a day's ET0 is missing/NaN (typical Fraser Valley summer day, mm/day). */
 export const DEFAULT_ET0_MM = 4.5
