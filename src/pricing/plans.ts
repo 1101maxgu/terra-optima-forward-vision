@@ -1,72 +1,58 @@
 // Every price, limit and policy line for GeoViva lives here: the Pricing page, its calculator, the Help
 // guide (and so Luke) and the server's plan limits all read this file. Plain data, no React.
-// DRAFT: placeholder numbers in CAD, excluding tax. Change them here and everything follows.
+// DRAFT: numbers in CAD, excluding tax. Change them here and everything follows.
 
 export const PRICES_ARE_DRAFT = true
 export const CURRENCY = 'CAD'
 export const CONTACT_EMAIL = 'hello@geoviva.example' // placeholder
 
+// 'grower' is the stored id of the paid plan (database rows and server routes use it). Farmers see it as the Season plan.
 export type PlanId = 'free' | 'grower'
-export type Billing = 'monthly' | 'yearly'
+export const PLAN_NAME: Record<PlanId, string> = { free: 'Free', grower: 'Season plan' }
+
+const NO_CAP = 1000 // "as many as you like": a number so it travels through JSON
 
 export const FREE = {
-  zones: 2,
-  sensors: 1, // connected sensors (ours or third-party); manual readings and CSV are always free
+  zones: NO_CAP,
+  sensors: NO_CAP, // sensors you rent from us or bring yourself; manual readings and CSV are always free
   farms: 1,
   historyDays: 30,
   reportDays: 7, // Reports page: last 7 days only
 }
 
-export const GROWER = {
-  monthly: 8,
-  yearly: 80, // 10 months' price: 2 months free
-  sensorsIncluded: 3,
+/** The paid plan: one price per farm for one season. Sensors are rented on top, on any plan. */
+export const SEASON = {
+  price: 100, // per farm, per season
+  months: 4, // a season is 4 months
   historyDays: 365,
   reportDays: 30,
+  textsPerMonth: 300, // fair-use limit on text alerts
 }
 
-export const EXTRA_SENSOR = { monthly: 3, yearly: 30 }
-
-export const SENSOR = {
-  price: 99, // GeoViva Wi-Fi soil sensor
-  partsCost: 95, // parts list in docs/PRD.md before shipping and contingency
-  shipping: 12, // flat per order, anywhere in Canada
-  returnDays: 30,
+export const RENTAL = {
+  price: 50, // per sensor, per season
+  replacementFee: 99, // charged only if a sensor isn't sent back
+  returnDays: 30, // after the season ends
 }
-
-export const BUNDLE = {
-  price: 349,
-  sensors: 3,
-  // Includes the first year of Grower, billed yearly.
-}
-
-/** What the bundle would cost bought separately. */
-export const bundleListPrice = BUNDLE.sensors * SENSOR.price + GROWER.yearly
 
 export interface Limits {
   zones: number | null // null = unlimited
   sensors: number
   historyDays: number
   reportDays: number // longest Reports period
+  assistant: boolean // Luke, the AI assistant
+  textAlerts: boolean
 }
 
-/** Limits for a plan; Grower's sensor allowance grows with paid extra sensors. */
-export function limitsFor(plan: PlanId, extraSensors = 0): Limits {
+export function limitsFor(plan: PlanId): Limits {
   return plan === 'free'
-    ? { zones: FREE.zones, sensors: FREE.sensors, historyDays: FREE.historyDays, reportDays: FREE.reportDays }
-    : { zones: null, sensors: GROWER.sensorsIncluded + Math.max(0, extraSensors), historyDays: GROWER.historyDays, reportDays: GROWER.reportDays }
+    ? { zones: null, sensors: FREE.sensors, historyDays: FREE.historyDays, reportDays: FREE.reportDays, assistant: false, textAlerts: false }
+    : { zones: null, sensors: NO_CAP, historyDays: SEASON.historyDays, reportDays: SEASON.reportDays, assistant: true, textAlerts: true }
 }
-
-export const needsGrower = (zones: number, sensors: number) => zones > FREE.zones || sensors > FREE.sensors
-
-/** How the farmer gets sensors: already owns them, buys ours one by one, or buys the Starter bundle. */
-export type Hardware = 'own' | 'buy' | 'bundle'
 
 export interface CostInput {
-  zones: number
-  sensors: number
-  billing: Billing
-  hardware: Hardware
+  season: boolean // wants the Season plan (AI assistant and text alerts)
+  sensors: number // sensors to rent from GeoViva
 }
 
 export interface CostLine {
@@ -75,61 +61,33 @@ export interface CostLine {
 }
 
 export interface CostEstimate {
-  plan: PlanId
-  firstYear: CostLine[]
-  firstYearTotal: number
-  laterYears: CostLine[]
-  laterYearTotal: number
+  lines: CostLine[]
+  total: number
 }
 
-const sum = (lines: CostLine[]) => lines.reduce((n, l) => n + l.amount, 0)
 const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? '' : 's'}`
 
-/** Year-one and following-year cost in CAD, excluding tax. */
-export function estimateCost({ zones, sensors, billing, hardware }: CostInput): CostEstimate {
-  zones = Math.max(0, Math.floor(zones))
+/** Cost for one season in CAD, excluding tax. */
+export function estimateCost({ season, sensors }: CostInput): CostEstimate {
   sensors = Math.max(0, Math.floor(sensors))
-  const bundle = hardware === 'bundle'
-  const plan: PlanId = bundle || needsGrower(zones, sensors) ? 'grower' : 'free'
-  const extras = plan === 'grower' ? Math.max(0, sensors - GROWER.sensorsIncluded) : 0
-
-  const software: CostLine[] = []
-  if (plan === 'grower') {
-    software.push(billing === 'yearly'
-      ? { label: 'Grower plan, yearly', amount: GROWER.yearly }
-      : { label: `Grower plan, ${money(GROWER.monthly)} × 12 months`, amount: GROWER.monthly * 12 })
-    if (extras)
-      software.push(billing === 'yearly'
-        ? { label: `${plural(extras, 'extra sensor')}, yearly`, amount: extras * EXTRA_SENSOR.yearly }
-        : { label: `${plural(extras, 'extra sensor')}, ${money(EXTRA_SENSOR.monthly)} × 12 months`, amount: extras * EXTRA_SENSOR.monthly * 12 })
-  }
-
-  const firstYear: CostLine[] = []
-  if (bundle) {
-    firstYear.push({ label: `Starter bundle (${BUNDLE.sensors} sensors + first year of Grower)`, amount: BUNDLE.price })
-    const more = Math.max(0, sensors - BUNDLE.sensors)
-    if (more) firstYear.push({ label: `${plural(more, 'more sensor')} at ${money(SENSOR.price)}`, amount: more * SENSOR.price })
-    firstYear.push(...software.slice(1)) // the bundle already covers the base plan
-  } else {
-    if (hardware === 'buy' && sensors) firstYear.push({ label: `${plural(sensors, 'sensor')} at ${money(SENSOR.price)}`, amount: sensors * SENSOR.price })
-    firstYear.push(...software)
-  }
-  if (hardware !== 'own' && (bundle || sensors)) firstYear.push({ label: 'Shipping', amount: SENSOR.shipping })
-
-  return { plan, firstYear, firstYearTotal: sum(firstYear), laterYears: software, laterYearTotal: sum(software) }
+  const lines: CostLine[] = []
+  if (season) lines.push({ label: `Season plan (${SEASON.months} months)`, amount: SEASON.price })
+  if (sensors) lines.push({ label: `${plural(sensors, 'sensor')} to rent at ${money(RENTAL.price)}`, amount: sensors * RENTAL.price })
+  return { lines, total: lines.reduce((n, l) => n + l.amount, 0) }
 }
 
-/** The fixed example on the Pricing page: a typical 4-bed market garden. */
-export const WORKED_EXAMPLE: CostInput = { zones: 4, sensors: 4, billing: 'yearly', hardware: 'bundle' }
+/** The fixed example on the Pricing page: a small farm with 3 sensors. */
+export const WORKED_EXAMPLE: CostInput = { season: true, sensors: 3 }
 
 export const money = (n: number) => (Number.isInteger(n) ? `$${n}` : `$${n.toFixed(2)}`)
 
 export const POLICIES = [
   `All prices are in Canadian dollars and do not include GST/PST. The exact tax is shown before you pay.`,
-  `Sensor shipping is a flat ${money(SENSOR.shipping)} per order anywhere in Canada.`,
-  `No contract. Cancel any time: your plan stays active until the end of the month or year you have paid for, then ends. There are no refunds for the unused part of a period.`,
-  `If your plan ends, your farm moves to the Free plan. Nothing is deleted: zones and sensors above the free limits become read-only until you upgrade again.`,
-  `Unopened sensors can be returned within ${SENSOR.returnDays} days for a full refund.`,
+  `The Season plan covers one season of ${SEASON.months} months. It does not renew by itself. We ask you before the next season.`,
+  `You rent sensors. We ship them to you, and the shipping is already in the ${money(RENTAL.price)}. You never have to buy the hardware.`,
+  `Send each sensor back within ${RENTAL.returnDays} days after the season ends. If a sensor is not sent back, we charge a replacement fee of ${money(RENTAL.replacementFee)}.`,
+  `The Free plan stays free. Nothing is deleted when a season ends.`,
+  `Text alerts have a fair-use limit of about ${SEASON.textsPerMonth} texts a month. Normal farms never come close.`,
 ]
 
 export const SPONSORED_LINE = `Community gardens and food-security farms can use GeoViva free, at any size. Email ${CONTACT_EMAIL} to apply.`

@@ -14,6 +14,7 @@ it('has unique topic ids and every topic has content', () => {
 it('offline search finds the right topic for farmer wording', () => {
   expect(searchTopics('battery drains fast')[0].id).toBe('hardware')
   expect(searchTopics('how do I draw a zone')[0].id).toBe('zones')
+  expect(searchTopics('how do I draw a field section')[0].id).toBe('zones')
   expect(searchTopics('what works without internet')[0].id).toBe('offline')
   expect(searchTopics('a')).toEqual([])
   expect(searchTopics('zzzz qqqq')).toEqual([])

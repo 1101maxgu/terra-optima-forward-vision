@@ -36,7 +36,7 @@ export function buildSampleData(now = Date.now()): FarmData {
 
   const zones: Zone[] = ([
     ...SAMPLE_FARM.zones,
-    { id: 'd',name: 'Zone D · Strawberries', cropId: 'strawberry', soilId: 'loam', method: 'drip', areaM2: 2000 },
+    { id: 'd',name: 'Section D · Strawberries', cropId: 'strawberry', soilId: 'loam', method: 'drip', areaM2: 2000 },
   ] as Zone[]).map((z) => ({ ...z, farmId: SAMPLE_FARM_ID, boundary: BOUNDARIES[z.id], areaM2: Math.round(polygonAreaM2(BOUNDARIES[z.id])), createdAt: created, updatedAt: created }))
 
   const sensor = (id: string, name: string, type: Sensor['type'], zoneId: string | null, depthCm: number, battery: number, lastSeenAgo: number, at?: [number, number]): Sensor => ({

@@ -29,13 +29,13 @@ export default function ZoneDetail({ zoneId }: { zoneId: string }) {
   const [confirmDelete, setConfirmDelete] = useState(false)
   const zone = zones.find((z) => z.id === zoneId)
 
-  if (loading) return <p className="p-6 text-muted" role="status">Loading zone…</p>
+  if (loading) return <p className="p-6 text-muted" role="status">Loading field section…</p>
   if (!zone)
     return (
       <Card className="mx-auto mt-6 max-w-md text-center">
-        <h1 className="text-xl font-bold">Zone not found</h1>
+        <h1 className="text-xl font-bold">Field section not found</h1>
         <p className="mt-1 text-muted">It may have been deleted.</p>
-        <a href="#/zones" className="btn-primary mt-4 inline-flex min-h-11 items-center">Back to zones</a>
+        <a href="#/zones" className="btn-primary mt-4 inline-flex min-h-11 items-center">Back to field sections</a>
       </Card>
     )
 
@@ -51,7 +51,7 @@ export default function ZoneDetail({ zoneId }: { zoneId: string }) {
   return (
     <div className="mx-auto flex max-w-6xl flex-col gap-4 pb-24 sm:pb-6">
       <a href="#/zones" className="inline-flex min-h-11 items-center gap-1 self-start text-sm font-medium text-muted hover:text-ink">
-        <ArrowLeft className="size-4" aria-hidden /> All zones
+        <ArrowLeft className="size-4" aria-hidden /> All field sections
       </a>
 
       <header className="flex items-center gap-3 sm:gap-4">
@@ -63,7 +63,7 @@ export default function ZoneDetail({ zoneId }: { zoneId: string }) {
           </p>
         </div>
         <button type="button" onClick={() => setEditing(true)} className="btn-secondary inline-flex min-h-11 items-center gap-2">
-          <Pencil className="size-4" aria-hidden /><span className="hidden sm:inline">Edit zone</span><span className="sr-only sm:hidden">Edit zone</span>
+          <Pencil className="size-4" aria-hidden /><span className="hidden sm:inline">Edit field section</span><span className="sr-only sm:hidden">Edit field section</span>
         </button>
         <details className="relative">
           <summary className="grid size-11 cursor-pointer list-none place-items-center rounded-md border border-line bg-surface hover:border-ink [&::-webkit-details-marker]:hidden" aria-label="More actions">
@@ -74,13 +74,13 @@ export default function ZoneDetail({ zoneId }: { zoneId: string }) {
               <MapPinned className="size-4" aria-hidden /> {zone.boundary ? 'Edit boundary' : 'Add boundary'}
             </button>
             <button type="button" onClick={() => setConfirmDelete(true)} className="flex min-h-11 items-center gap-2 rounded-lg px-3 text-left text-alert hover:bg-alert-soft">
-              <Trash2 className="size-4" aria-hidden /> Delete zone
+              <Trash2 className="size-4" aria-hidden /> Delete field section
             </button>
           </div>
         </details>
       </header>
 
-      <nav className="-mx-4 overflow-x-auto border-b border-line px-4 [scrollbar-width:none] sm:mx-0 sm:px-0" aria-label="Zone sections">
+      <nav className="-mx-4 overflow-x-auto border-b border-line px-4 [scrollbar-width:none] sm:mx-0 sm:px-0" aria-label="Field section sections">
         <div role="tablist" className="flex min-w-max gap-1">
           {TABS.map(([id, label]) => (
             <button
@@ -106,14 +106,14 @@ export default function ZoneDetail({ zoneId }: { zoneId: string }) {
         {tab === 'settings' && (
           <div className="flex flex-col gap-4">
             <Card>
-              <h2 className="mb-4 text-lg font-bold">Zone settings</h2>
+              <h2 className="mb-4 text-lg font-bold">Field section settings</h2>
               <ZoneForm key={zone.updatedAt ?? zone.id} zone={zone} onSave={save} />
             </Card>
             <Card className="border-alert/40">
-              <h2 className="text-lg font-bold text-alert">Danger zone</h2>
-              <p className="mt-1 text-muted">Deleting removes this zone. Sensors assigned to it become unassigned.</p>
+              <h2 className="text-lg font-bold text-alert">Danger field section</h2>
+              <p className="mt-1 text-muted">Deleting removes this field section. Sensors assigned to it become unassigned.</p>
               <button type="button" onClick={() => setConfirmDelete(true)} className="mt-3 inline-flex min-h-11 items-center gap-2 rounded-md border border-alert px-4 font-semibold text-alert hover:bg-alert-soft">
-                <Trash2 className="size-4" aria-hidden /> Delete zone
+                <Trash2 className="size-4" aria-hidden /> Delete field section
               </button>
             </Card>
           </div>
@@ -128,7 +128,7 @@ export default function ZoneDetail({ zoneId }: { zoneId: string }) {
         </div>
       )}
 
-      <Dialog open={editing} onClose={() => setEditing(false)} title="Edit zone">
+      <Dialog open={editing} onClose={() => setEditing(false)} title="Edit field section">
         <ZoneForm zone={zone} onSave={save} onDone={() => setEditing(false)} />
       </Dialog>
       <DeleteDialog open={confirmDelete} onClose={() => setConfirmDelete(false)} name={zone.name} onConfirm={() => deleteZone(zone.id)} />
@@ -153,14 +153,14 @@ function DeleteDialog({ open, onClose, name, onConfirm }: { open: boolean; onClo
     }
   }
   return (
-    <Dialog open={open} onClose={onClose} title="Delete zone?">
+    <Dialog open={open} onClose={onClose} title="Delete field section?">
       <p>
         <b>{name}</b> and its settings will be removed. Sensors assigned to it become unassigned. This cannot be undone.
       </p>
       {err && <p role="alert" className="mt-3 font-medium text-alert">{err}</p>}
       <div className="mt-5 flex flex-wrap justify-end gap-2">
         <button type="button" onClick={onClose} className="btn-secondary min-h-11">Cancel</button>
-        <button type="button" onClick={run} disabled={busy} className="min-h-11 rounded-md bg-alert px-4 font-semibold text-surface disabled:opacity-60">{busy ? 'Deleting…' : 'Delete zone'}</button>
+        <button type="button" onClick={run} disabled={busy} className="min-h-11 rounded-md bg-alert px-4 font-semibold text-surface disabled:opacity-60">{busy ? 'Deleting…' : 'Delete field section'}</button>
       </div>
     </Dialog>
   )

@@ -16,12 +16,12 @@ import { errMsg } from '../components/sensors/SensorConnect'
 
 const HEAD = [
   ['Choose location', 'Search for your farm or use your current location.'],
-  ['Draw zone boundary', 'Outline the area on the satellite map.'],
+  ['Draw field section boundary', 'Outline the area on the satellite map.'],
   ['Field details', 'Crop, soil and irrigation information.'],
   ['Connect sensors', 'Link sensors using any method — or skip for now.'],
-  ['Review & create', 'Confirm everything before creating the zone.'],
+  ['Review & create', 'Confirm everything before creating the field section.'],
 ] as const
-const NEXT = ['Draw zone', 'Field details', 'Connect sensors', 'Review'] as const
+const NEXT = ['Draw field section', 'Field details', 'Connect sensors', 'Review'] as const
 
 function readStoredDraft(): WizardDraft | null {
   try {
@@ -56,9 +56,9 @@ export default function CreateZone() {
   if (blocked ?? atLimit)
     return (
       <div className="mx-auto max-w-xl space-y-4 p-4">
-        <h1 className="text-xl font-bold">Create a new zone</h1>
-        <PlanNudge>{`The Free plan includes ${limits?.zones} zones, and this farm has ${zones.length}. Upgrade to Grower for unlimited zones.`}</PlanNudge>
-        <a href="#/zones" className="btn-secondary inline-flex min-h-11 items-center">Back to zones</a>
+        <h1 className="text-xl font-bold">Create a new field section</h1>
+        <PlanNudge>{`The Free plan includes ${limits?.zones} field sections, and this farm has ${zones.length}. Get the Season plan to add more.`}</PlanNudge>
+        <a href="#/zones" className="btn-secondary inline-flex min-h-11 items-center">Back to field sections</a>
       </div>
     )
   return <Wizard key={run} onAnother={() => { setBlocked(atLimit); setRun((r) => r + 1) }} />
@@ -66,7 +66,7 @@ export default function CreateZone() {
 
 function Wizard({ onAnother }: { onAnother: () => void }) {
   const { farm, zones, createZone, assignSensor, saveSensor, addManualReading } = useFarm()
-  const fresh = () => newDraft([farm.lon, farm.lat], `Zone ${zones.length + 1}`)
+  const fresh = () => newDraft([farm.lon, farm.lat], `Field section ${zones.length + 1}`)
   const [d, setD] = useState<WizardDraft>(fresh)
   const [resumable, setResumable] = useState<WizardDraft | null>(readStoredDraft)
   const [saving, setSaving] = useState(false)
@@ -111,7 +111,7 @@ function Wizard({ onAnother }: { onAnother: () => void }) {
       writeDraft(null)
       setCreated(zone)
     } catch (e) {
-      setError(`${p.zone ? 'The zone was saved, but finishing setup failed' : 'Could not create the zone'}: ${errMsg(e)}`)
+      setError(`${p.zone ? 'The field section was saved, but finishing setup failed' : 'Could not create the field section'}: ${errMsg(e)}`)
     } finally {
       setSaving(false)
     }
@@ -126,18 +126,18 @@ function Wizard({ onAnother }: { onAnother: () => void }) {
     <div className="mx-auto flex min-h-full max-w-6xl flex-col">
       <div className="space-y-4 px-4 pt-4 pb-6 sm:px-6">
         <div className="flex items-center gap-2">
-          <button type="button" onClick={back} aria-label={d.step === 0 ? 'Cancel and go back to zones' : 'Previous step'}
+          <button type="button" onClick={back} aria-label={d.step === 0 ? 'Cancel and go back to field sections' : 'Previous step'}
             className="-ml-2 grid size-11 place-items-center rounded-full hover:bg-stale-soft">
             <ArrowLeft aria-hidden className="size-6" />
           </button>
-          <h1 className="text-xl font-bold sm:text-2xl">Create a new zone</h1>
-          <HelpLink topic="zones" label="Create a new zone" />
+          <h1 className="text-xl font-bold sm:text-2xl">Create a new field section</h1>
+          <HelpLink topic="zones" label="Create a new field section" />
         </div>
         <Stepper step={d.step} canGo={canGo} onGo={go} />
 
         {resumable && (
           <div className="flex flex-wrap items-center gap-3 rounded-xl border border-water/30 bg-water-soft p-3">
-            <p className="flex min-w-60 flex-1 items-center gap-2 font-semibold"><History aria-hidden className="size-5 shrink-0 text-water" /> Resume your unfinished zone “{resumable.name || 'Untitled'}”?</p>
+            <p className="flex min-w-60 flex-1 items-center gap-2 font-semibold"><History aria-hidden className="size-5 shrink-0 text-water" /> Resume your unfinished field section “{resumable.name || 'Untitled'}”?</p>
             <button type="button" className="btn-primary min-h-11" onClick={() => { touched.current = true; setD(resumable); setResumable(null) }}>Resume</button>
             <button type="button" className="btn-secondary min-h-11" onClick={() => { writeDraft(null); setResumable(null) }}>Start over</button>
           </div>
@@ -167,7 +167,7 @@ function Wizard({ onAnother }: { onAnother: () => void }) {
           </button>
           <button type="button" disabled={!!err || saving} onClick={() => (last ? create() : go(d.step + 1))}
             className="flex min-h-12 flex-[2] items-center justify-center gap-2 rounded-lg bg-forest px-4 font-semibold text-surface hover:bg-forest-2 disabled:opacity-50 sm:ml-auto sm:flex-none sm:px-8">
-            {last ? (saving ? <><Loader2 aria-hidden className="size-5 animate-spin" /> Creating…</> : error ? 'Retry' : 'Create zone')
+            {last ? (saving ? <><Loader2 aria-hidden className="size-5 animate-spin" /> Creating…</> : error ? 'Retry' : 'Create field section')
               : <>Next: {NEXT[d.step]} <ArrowRight aria-hidden className="size-5" /></>}
           </button>
         </div>
@@ -180,7 +180,7 @@ function Success({ zone, d, onAnother }: { zone: Zone; d: WizardDraft; onAnother
   const nSensors = d.pendingSensors.length + d.sensorIds.length
   const reading = d.sensorMethod === 'manual' && d.manualReadingPct !== null
   const items: [boolean, string][] = [
-    [!!zone.boundary, zone.boundary ? 'Boundary mapped' : 'No boundary yet — draw it from the zone page'],
+    [!!zone.boundary, zone.boundary ? 'Boundary mapped' : 'No boundary yet — draw it from the field section page'],
     [nSensors > 0, nSensors > 0 ? `${nSensors} sensor${nSensors === 1 ? '' : 's'} connected` : 'No sensors yet — add them from Sensors'],
     [nSensors > 0 || reading, reading ? 'First reading recorded' : nSensors > 0 ? 'Waiting for sensor data' : 'Add a reading to get recommendations'],
     [nSensors > 0 || reading, nSensors > 0 || reading ? 'Ready for irrigation recommendations' : 'Recommendations start after the first reading'],
@@ -189,7 +189,7 @@ function Success({ zone, d, onAnother }: { zone: Zone; d: WizardDraft; onAnother
     <div className="mx-auto max-w-md space-y-5 px-4 py-8 text-center">
       <span className="mx-auto grid size-20 place-items-center rounded-full bg-leaf-soft"><Check aria-hidden className="size-11 text-leaf" strokeWidth={3} /></span>
       <div>
-        <h1 className="text-2xl font-bold">Zone created successfully!</h1>
+        <h1 className="text-2xl font-bold">Field section created successfully!</h1>
         <p className="text-muted">{zone.name} has been added to your farm.</p>
       </div>
       <Card className="flex items-center gap-3 text-left">
@@ -208,8 +208,8 @@ function Success({ zone, d, onAnother }: { zone: Zone; d: WizardDraft; onAnother
         ))}
       </ul>
       <div className="space-y-2">
-        <a href={`#/zones/${zone.id}`} className="flex min-h-12 items-center justify-center rounded-lg bg-forest font-semibold text-surface hover:bg-forest-2">View zone details</a>
-        <button type="button" onClick={onAnother} className="flex min-h-12 w-full items-center justify-center rounded-lg border-2 border-line bg-surface font-semibold hover:border-ink">Add another zone</button>
+        <a href={`#/zones/${zone.id}`} className="flex min-h-12 items-center justify-center rounded-lg bg-forest font-semibold text-surface hover:bg-forest-2">View field section details</a>
+        <button type="button" onClick={onAnother} className="flex min-h-12 w-full items-center justify-center rounded-lg border-2 border-line bg-surface font-semibold hover:border-ink">Add another field section</button>
       </div>
     </div>
   )

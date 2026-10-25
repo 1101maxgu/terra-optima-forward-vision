@@ -52,7 +52,7 @@ export default function Reports() {
                 onClick={() => (locked(d) ? setNudge(true) : setDays(d))}
                 className={`inline-flex min-h-10 items-center gap-1 rounded-lg px-4 font-semibold ${days === d ? 'bg-forest text-white' : 'text-muted'}`}
               >
-                {locked(d) && <Lock aria-label="Grower plan" className="size-4" />}
+                {locked(d) && <Lock aria-label="Season plan" className="size-4" />}
                 Last {d} days
               </button>
             ))}
@@ -60,13 +60,13 @@ export default function Reports() {
         }
       />
       {dataset === 'sample' && <SampleBanner />}
-      {nudge && <PlanNudge>{`The Free plan shows reports for the last ${limits?.reportDays} days. Upgrade to Grower for 30-day reports.`}</PlanNudge>}
+      {nudge && <PlanNudge>{`The Free plan shows reports for the last ${limits?.reportDays} days. Get the Season plan for 30-day reports.`}</PlanNudge>}
 
       {zones.length === 0 ? (
         <Card className="text-muted">
-          Add a zone first.{' '}
+          Add a field section first.{' '}
           <a href="#/zones/new" className="font-semibold text-leaf underline underline-offset-4">
-            Create a zone
+            Create a field section
           </a>
         </Card>
       ) : (
@@ -77,9 +77,9 @@ export default function Reports() {
             <SectionTitle icon={<Droplets aria-hidden className="size-5 text-water" />} title={`Water applied · last ${days} days`} />
             <p className="mb-3 text-3xl font-bold tabular-nums">{fmtLitres(total)}</p>
             {total === 0 ? (
-              <p className="text-muted">No irrigation logged in this period. Log watering from a zone's page.</p>
+              <p className="text-muted">No irrigation logged in this period. Log watering from a field section's page.</p>
             ) : (
-              <div className="h-64 w-full" role="img" aria-label={`Litres applied per zone, total ${fmtLitres(total)}`}>
+              <div className="h-64 w-full" role="img" aria-label={`Litres applied per field section, total ${fmtLitres(total)}`}>
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={chart} margin={{ top: 8, right: 8, bottom: 0, left: 0 }}>
                     <CartesianGrid stroke="#e3e6dd" vertical={false} />
@@ -94,7 +94,7 @@ export default function Reports() {
           </Card>
 
           <Card>
-            <SectionTitle icon={<Activity aria-hidden className="size-5 text-leaf" />} title="By zone" />
+            <SectionTitle icon={<Activity aria-hidden className="size-5 text-leaf" />} title="By field section" />
             <ul className="divide-y divide-line">
               {rows.map((r) => (
                 <li key={r.z.id} className="grid grid-cols-2 gap-x-4 gap-y-1 py-3 sm:grid-cols-[2fr_1fr_1fr_1.5fr] sm:items-center">

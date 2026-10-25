@@ -63,16 +63,16 @@ export function ProjectionCard() {
     <Card>
       <SectionTitle icon={<TrendingDown aria-hidden className="size-5 text-water" />} title="Next 14 days: following GeoViva vs a fixed schedule" action={<ProvenanceBadge p="projected" />} />
       <p className="mb-3 text-muted">
-        Baseline: {mmPerEvent} mm, {eventsPerWeek}× a week in every zone. This is a model of the weeks ahead, not a measured result.{' '}
+        Baseline: {mmPerEvent} mm, {eventsPerWeek}× a week in every field section. This is a model of the weeks ahead, not a measured result.{' '}
         <a href="#/settings" className="font-semibold text-water underline">Change baseline</a>
       </p>
       {p.zones.length === 0 ? (
-        <p className="text-muted">Needs a soil moisture reading in at least one zone to project from.</p>
+        <p className="text-muted">Needs a soil moisture reading in at least one field section to project from.</p>
       ) : (
         <>
           <Headline saved={p.saved} base={p.baseline} />
           {p.saved.litres < 0 && (
-            <p className="mt-3 text-sm">GeoViva uses more water than the fixed schedule here because the schedule would under-water some zones; see the zones below.</p>
+            <p className="mt-3 text-sm">GeoViva uses more water than the fixed schedule here because the schedule would under-water some field sections; see the field sections below.</p>
           )}
           <CostLine saved={p.saved} />
           <ul className="mt-4 divide-y divide-line border-y border-line text-sm">
@@ -84,7 +84,7 @@ export function ProjectionCard() {
                 <span className="tabular-nums sm:ml-auto">{less(z.saved.litres, fmtLitres)}</span>
                 {z.baselineStressDays > 0 && (
                   <span className="w-full text-muted">
-                    The fixed schedule would leave this zone below its refill point (crop stress) on {z.baselineStressDays} of {z.days} days
+                    The fixed schedule would leave this field section below its refill point (crop stress) on {z.baselineStressDays} of {z.days} days
                     {z.saved.litres < 0 ? ', so GeoViva applies more water here.' : '.'}
                   </span>
                 )}
@@ -94,7 +94,7 @@ export function ProjectionCard() {
           {caveats.map((z) => (
             <p key={z.zoneId} className="mt-2 flex gap-2 text-sm text-sun">
               <AlertTriangle aria-hidden className="mt-0.5 size-4 shrink-0" />
-              {nameOf(z.zoneId)}: {z.discounted.length ? `${z.discounted.join(', ')} left out as likely faulty; ` : ''}sensor confidence {confidenceWord(z.confidence)}. Treat this zone's projection with care.
+              {nameOf(z.zoneId)}: {z.discounted.length ? `${z.discounted.join(', ')} left out as likely faulty; ` : ''}sensor confidence {confidenceWord(z.confidence)}. Treat this field section's projection with care.
             </p>
           ))}
           {p.missing.length > 0 && <p className="mt-2 text-sm text-muted">Not included (no reading yet): {p.missing.join(', ')}.</p>}
@@ -120,7 +120,7 @@ export function HistoryCard({ days }: { days: number }) {
       <SectionTitle icon={<History aria-hidden className="size-5 text-leaf" />} title={`So far: last ${days} days vs the ${days} days before`} action={<ProvenanceBadge p={prov} />} />
       <p className="mb-3 text-muted">From waterings you logged. Weather differences between the two periods are not adjusted.</p>
       {!h.enough ? (
-        <p className="text-muted">Not enough history yet. Log at least 2 waterings from a zone's page and this comparison fills in after {days} days.</p>
+        <p className="text-muted">Not enough history yet. Log at least 2 waterings from a field section's page and this comparison fills in after {days} days.</p>
       ) : (
         <>
           <dl className="grid gap-3 sm:grid-cols-3">

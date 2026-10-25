@@ -7,6 +7,7 @@ import { AssistantUnavailableError, askLuke, buildContext, type ChatTurn } from 
 import { Dialog } from '../ui/controls'
 import { searchTopics, type Topic } from './content'
 import Luke from './Luke'
+import PlanNudge from '../components/billing/PlanNudge'
 
 const OPEN_EVENT = 'geoviva:luke'
 
@@ -57,7 +58,7 @@ function Chat({ path, draft, onNavigate }: { path: string; draft: string; onNavi
   const [busy, setBusy] = useState(false)
   const end = useRef<HTMLDivElement>(null)
 
-  useEffect(() => end.current?.scrollIntoView({ block: 'end' }), [msgs, busy])
+  useEffect(() => { end.current?.scrollIntoView({ block: 'end' }) }, [msgs, busy])
 
   const send = async (e?: FormEvent) => {
     e?.preventDefault()
@@ -85,6 +86,14 @@ function Chat({ path, draft, onNavigate }: { path: string; draft: string; onNavi
       setBusy(false)
     }
   }
+
+  if (farm.limits && !farm.limits.assistant)
+    return (
+      <div className="flex flex-col gap-3">
+        <PlanNudge>Luke, the AI assistant, comes with the Season plan. The Help pages are free and answer most questions.</PlanNudge>
+        <a href="#/help" onClick={onNavigate} className="btn-secondary inline-flex min-h-11 w-fit items-center">Open the Help pages</a>
+      </div>
+    )
 
   return (
     <div className="flex flex-col gap-3">

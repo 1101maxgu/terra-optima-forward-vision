@@ -299,7 +299,7 @@ function useFarmState() {
     createZone: (z: Omit<Zone, 'id' | 'farmId'>) => run(repo.saveZone({ ...z, id: newId(), farmId })),
     updateZone: (id: string, patch: Partial<Zone>) => {
       const z = zones.find((x) => x.id === id)
-      if (!z) return Promise.reject(new Error('Zone not found'))
+      if (!z) return Promise.reject(new Error('Field section not found'))
       return run(repo.saveZone({ ...z, ...patch }))
     },
     deleteZone: (id: string) => run(repo.deleteZone(id)),

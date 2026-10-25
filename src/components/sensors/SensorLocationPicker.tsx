@@ -71,7 +71,7 @@ export default function SensorLocationPicker({ sensor, onDone }: { sensor: Senso
           <MapPin aria-hidden className="size-4 text-water" /> {point[1].toFixed(6)}, {point[0].toFixed(6)}
         </p>
       )}
-      {outside && <ErrorNote>Sensor location appears outside this zone. Check the spot, or move the sensor to another zone from its menu.</ErrorNote>}
+      {outside && <ErrorNote>Sensor location appears outside this field section. Check the spot, or move the sensor to another field section from its menu.</ErrorNote>}
       {error && <ErrorNote>{error}</ErrorNote>}
       <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
         {(sensor.lat !== undefined || point) && (

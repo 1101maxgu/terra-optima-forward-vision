@@ -38,7 +38,7 @@ export function MoistureTab({ zone, zs }: { zone: Zone; zs: ZoneStatus }) {
   const yMax = Math.ceil(Math.max(fc + 5, ...rows.flatMap((r) => keys.map((k) => r[k] ?? 0))) / 10) * 10
   const name = (k: string) => {
     const s = sensors.find((x) => x.id === k)
-    return s ? `${s.name} · ${s.depthCm} cm` : k === 'csv' ? 'Imported (CSV)' : 'Manual readings'
+    return s ? `${s.name} · ${s.depthCm} cm` : k === 'csv' ? 'Imported (spreadsheet)' : 'Manual readings'
   }
 
   const [m, setM] = useState('')
@@ -202,11 +202,11 @@ export function WeatherTab() {
             <span className="font-semibold">{i === 0 ? 'Today' : fmtDate(`${d.date}T12:00`)}</span>
             <span className="tabular-nums"><b>{Math.round(d.tMaxC)}°</b> <span className="text-muted">/ {Math.round(d.tMinC)}°</span></span>
             <span className="flex items-center gap-1 tabular-nums text-water"><Droplets className="size-4" aria-hidden />{Math.round(d.rainMm * 10) / 10} mm</span>
-            <span className="flex items-center gap-1 text-sm tabular-nums text-muted" title="Reference evapotranspiration"><Gauge className="size-4" aria-hidden />ET₀ {Math.round(d.et0Mm * 10) / 10} mm</span>
+            <span className="flex items-center gap-1 text-sm tabular-nums text-muted" title="How fast the soil dries out"><Gauge className="size-4" aria-hidden />Dry-out {Math.round(d.et0Mm * 10) / 10} mm</span>
           </li>
         ))}
       </ul>
-      <p className="mt-3 text-sm text-muted">ET₀ is how much water a reference crop loses to the air each day. Higher means thirstier crops.</p>
+      <p className="mt-3 text-sm text-muted">Dry-out is how much water the sun and wind pull from the soil each day. A higher number means your crops get thirsty faster.</p>
     </Card>
   )
 }

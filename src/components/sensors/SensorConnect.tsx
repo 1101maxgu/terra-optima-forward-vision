@@ -18,7 +18,7 @@ export function MethodCards({ value, onChange }: { value: ConnectMethod | null; 
   return (
     <div role="radiogroup" aria-label="Connection method" className="grid gap-2 sm:grid-cols-3">
       <ChoiceCard vertical selected={value === 'lorawan'} onSelect={() => onChange('lorawan')} icon={<RadioTower className="size-6" />}
-        title="Existing LoRaWAN network" subtitle="Connect sensors already on The Things Stack" />
+        title="Long-range radio sensors you already have" subtitle="Sensors already set up on The Things Stack (LoRaWAN)" />
       <ChoiceCard vertical selected={value === 'esp32'} onSelect={() => onChange('esp32')} icon={<Wifi className="size-6" />}
         title="GeoViva Wi-Fi sensor" subtitle="Claim a new ESP32 sensor with its device code" />
       <ChoiceCard vertical selected={value === 'manual'} onSelect={() => onChange('manual')} icon={<PencilLine className="size-6" />}
@@ -35,8 +35,8 @@ export function ServerNeeded({ from = 'wizard' }: { from?: 'wizard' | 'sensors' 
         <p className="font-semibold">Needs the GeoViva server — not connected in this build.</p>
         <p className="mt-1 text-sm text-muted">
           {from === 'wizard'
-            ? 'You can create the zone now and connect sensors later from Sensors.'
-            : 'Manual readings work now. LoRaWAN and Wi-Fi sensors can be connected once the server is set up.'}
+            ? 'You can create the field section now and connect sensors later from Sensors.'
+            : 'Manual readings work now. Radio and Wi-Fi sensors can be connected once our server is set up.'}
         </p>
       </div>
     </div>
@@ -131,7 +131,7 @@ function TtnFlow({ zoneId, onRegistered }: { zoneId: string | null; onRegistered
   if (done)
     return (
       <p className="flex items-center gap-2 rounded-xl bg-leaf-soft p-3 font-semibold text-leaf">
-        <CheckCircle2 aria-hidden className="size-5" /> {done.length} sensor{done.length === 1 ? '' : 's'} added{zoneId === null ? ' — they will be assigned when you create the zone.' : '.'}
+        <CheckCircle2 aria-hidden className="size-5" /> {done.length} sensor{done.length === 1 ? '' : 's'} added{zoneId === null ? ' — they will be assigned when you create the field section.' : '.'}
       </p>
     )
 

@@ -213,7 +213,7 @@ export default function ZoneDrawMap({ value, onChange, center, zoom, otherZones,
     const d = drawRef.current
     const ring = polyRef.current?.coordinates[0].slice(0, -1)
     if (!d || featureId.current === null || !ring || vertex === null) return
-    if (ring.length <= 3) return setHint('A zone needs at least 3 corners. Use “Start over” to redraw it.')
+    if (ring.length <= 3) return setHint('A field section needs at least 3 corners. Use “Start over” to redraw it.')
     const next = toGeoPolygon(ring.filter((_, i) => i !== vertex))
     if (!next) return
     // Re-select so Terra Draw rebuilds its corner handles for the new shape.
@@ -228,10 +228,10 @@ export default function ZoneDrawMap({ value, onChange, center, zoom, otherZones,
   const instruction =
     phase === 'drawing'
       ? points === 0
-        ? 'Tap the corners of your growing area to create this zone.'
+        ? 'Tap the corners of your growing area to create this field section.'
         : points < 3
           ? `${points} corner${points === 1 ? '' : 's'} placed — keep tapping corners.`
-          : 'Tap “Finish boundary” or tap the first corner to close the zone.'
+          : 'Tap “Finish boundary” or tap the first corner to close the field section.'
       : phase === 'editing'
         ? 'Drag corners to move them. Tap a corner, then “Delete point” to remove it.'
         : 'Boundary finished. Move the map freely, or edit the boundary.'
@@ -242,7 +242,7 @@ export default function ZoneDrawMap({ value, onChange, center, zoom, otherZones,
         {instruction}
       </p>
       <div className={`relative overflow-hidden rounded-2xl border border-line bg-stale-soft ${className}`}>
-        <div ref={containerRef} style={FILL} role="application" aria-label="Zone boundary drawing map" />
+        <div ref={containerRef} style={FILL} role="application" aria-label="Field section boundary drawing map" />
         <MapNotice text={notice} onClose={dismissNotice} />
 
         <div className="pointer-events-none absolute top-3 left-3 z-[5] flex flex-col items-start gap-2">
@@ -311,7 +311,7 @@ export default function ZoneDrawMap({ value, onChange, center, zoom, otherZones,
         </p>
       )}
       <p className="mt-2 text-sm text-muted">
-        A zone is a management area — it doesn’t have to be a whole field.
+        A field section is a management area — it doesn’t have to be a whole field.
         {phase === 'editing' && ' Tap the small dot in the middle of an edge to add a corner there.'}
       </p>
     </div>

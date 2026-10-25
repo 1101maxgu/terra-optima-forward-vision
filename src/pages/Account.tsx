@@ -4,8 +4,9 @@ import { useCallback, useEffect, useState, type FormEvent } from 'react'
 import { CheckCircle2, Loader2, LogOut, Mail, Minus, Plus } from 'lucide-react'
 import { useAuth } from '../auth/AuthProvider'
 import { useFarm } from '../state/farmStore'
-import { billingAvailable, getFarmPlan, openBillingPortal, startCheckout, type FarmPlan } from '../services/billingApi'
-import { EXTRA_SENSOR, GROWER, money, type Billing } from '../pricing/plans'
+import { billingAvailable, getFarmPlan, openBillingPortal, type FarmPlan } from '../services/billingApi'
+import { money, PLAN_NAME, RENTAL, SEASON } from '../pricing/plans'
+import { reserveHref } from './Pricing'
 import { Card, PageHeader } from '../ui/kit'
 import { ErrorNote } from '../ui/controls'
 
@@ -54,53 +55,27 @@ function SignIn() {
   )
 }
 
-function Upgrade({ initialBilling }: { initialBilling: Billing }) {
-  const [billing, setBilling] = useState<Billing>(initialBilling)
-  const [extra, setExtra] = useState(0)
-  const [busy, setBusy] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const base = billing === 'yearly' ? GROWER.yearly : GROWER.monthly
-  const perSensor = billing === 'yearly' ? EXTRA_SENSOR.yearly : EXTRA_SENSOR.monthly
-  const total = base + extra * perSensor
-  const per = billing === 'yearly' ? 'a year' : 'a month'
-  const go = async () => {
-    setBusy(true)
-    setError(null)
-    try {
-      await startCheckout(billing, extra)
-    } catch (e) {
-      setError(errText(e))
-      setBusy(false)
-    }
-  }
+function Upgrade() {
+  const [sensors, setSensors] = useState(0)
+  const total = SEASON.price + sensors * RENTAL.price
   return (
     <div className="mt-4 flex flex-col gap-4 rounded-xl border border-line p-4">
-      <h3 className="text-lg font-bold">Upgrade to Grower</h3>
-      <div role="radiogroup" aria-label="Billing" className="inline-flex self-start rounded-xl border border-line p-1">
-        {(['monthly', 'yearly'] as const).map((b) => (
-          <button key={b} type="button" role="radio" aria-checked={billing === b} onClick={() => setBilling(b)}
-            className={`min-h-10 rounded-lg px-3 font-semibold ${billing === b ? 'bg-forest text-white' : 'text-muted'}`}>
-            {b === 'monthly' ? `${money(GROWER.monthly)} a month` : `${money(GROWER.yearly)} a year`}
-          </button>
-        ))}
-      </div>
+      <h3 className="text-lg font-bold">Get the Season plan</h3>
+      <p>{money(SEASON.price)} for the whole farm for {SEASON.months} months. It adds Luke, the AI assistant, and text alerts.</p>
       <div>
-        <p className="font-semibold">Extra sensors beyond the {GROWER.sensorsIncluded} included</p>
+        <p className="font-semibold">Sensors to rent</p>
         <div className="mt-1 flex items-center gap-2">
-          <button type="button" aria-label="Fewer extra sensors" disabled={extra === 0} onClick={() => setExtra(extra - 1)}
+          <button type="button" aria-label="Fewer sensors" disabled={sensors === 0} onClick={() => setSensors(sensors - 1)}
             className="grid size-11 place-items-center rounded-full border border-line disabled:opacity-40"><Minus aria-hidden className="size-5" /></button>
-          <span className="w-8 text-center text-xl font-bold tabular-nums" aria-live="polite">{extra}</span>
-          <button type="button" aria-label="More extra sensors" disabled={extra >= 50} onClick={() => setExtra(extra + 1)}
+          <span className="w-8 text-center text-xl font-bold tabular-nums" aria-live="polite">{sensors}</span>
+          <button type="button" aria-label="More sensors" disabled={sensors >= 50} onClick={() => setSensors(sensors + 1)}
             className="grid size-11 place-items-center rounded-full border border-line disabled:opacity-40"><Plus aria-hidden className="size-5" /></button>
-          <span className="text-sm text-muted">{money(perSensor)} each {per}</span>
+          <span className="text-sm text-muted">{money(RENTAL.price)} each, shipping included</span>
         </div>
       </div>
-      <p><span className="text-2xl font-bold">{money(total)}</span> {per}, plus GST/PST shown on the next page.</p>
-      <button type="button" onClick={go} disabled={busy} className="btn-primary inline-flex min-h-12 items-center justify-center gap-2 self-start">
-        {busy && <Loader2 aria-hidden className="size-5 animate-spin" />} Continue to secure payment
-      </button>
-      <p className="text-sm text-muted">Payment is handled by Stripe. Cancel any time; your plan runs to the end of the period you paid for.</p>
-      {error && <ErrorNote>{error}</ErrorNote>}
+      <p><span className="text-2xl font-bold">{money(total)}</span> for the season, plus GST/PST.</p>
+      <a href={reserveHref(`Season plan with ${sensors} sensors`)} className="btn-primary inline-flex min-h-12 items-center justify-center self-start">Reserve my season, no charge yet</a>
+      <p className="text-sm text-muted">Online payment is coming soon. Reserving holds your place. You pay one time for the season, and it never renews by itself.</p>
     </div>
   )
 }
@@ -131,15 +106,15 @@ function PlanCard() {
     <Card>
       {justPaid && (
         <p className="mb-4 flex items-center gap-2 rounded-xl bg-leaf-soft p-3 font-medium">
-          <CheckCircle2 aria-hidden className="size-5 text-leaf" /> Thanks! {plan.plan === 'grower' ? 'Grower is on.' : 'Your plan will update in a moment.'}
+          <CheckCircle2 aria-hidden className="size-5 text-leaf" /> Thanks! {plan.plan === 'grower' ? 'Your Season plan is on.' : 'Your plan will update in a moment.'}
         </p>
       )}
-      <h2 className="text-xl font-bold">Your plan: {plan.plan === 'grower' ? 'Grower' : 'Free'}</h2>
+      <h2 className="text-xl font-bold">Your plan: {PLAN_NAME[plan.plan]}</h2>
       <ul className="mt-2 flex flex-col gap-1 text-muted">
-        <li>Zones: {plan.usage.zones} of {plan.zones ?? 'unlimited'}</li>
-        <li>Connected sensors: {plan.usage.sensors} of {plan.sensors}{plan.extraSensors ? ` (${plan.extraSensors} extra)` : ''}</li>
+        <li>Sections of your field: {plan.usage.zones}</li>
+        <li>Connected sensors: {plan.usage.sensors}</li>
         {plan.plan === 'grower' && renews && (
-          <li>{plan.cancelAtPeriodEnd ? `Cancelled. Grower stays on until ${renews}, then your farm moves to Free. Nothing is deleted.` : `Renews ${renews}, billed ${plan.interval === 'year' ? 'yearly' : 'monthly'}.`}</li>
+          <li>{plan.cancelAtPeriodEnd ? `Your Season plan runs until ${renews}, then your farm moves to Free. Nothing is deleted.` : `Your Season plan runs until ${renews}.`}</li>
         )}
         {plan.status === 'past_due' && <li className="font-semibold text-alert">Your last payment didn’t go through. Update your card under “Manage plan”.</li>}
       </ul>
@@ -149,7 +124,7 @@ function PlanCard() {
         <button type="button" disabled={busy} onClick={async () => { setBusy(true); try { await openBillingPortal() } catch (e) { setError(errText(e)); setBusy(false) } }}
           className="btn-secondary mt-4 min-h-12">Manage plan, sensors or card</button>
       ) : null}
-      {plan.billingEnabled && plan.plan === 'free' && <Upgrade initialBilling={q.get('billing') === 'yearly' ? 'yearly' : 'monthly'} />}
+      {plan.billingEnabled && plan.plan === 'free' && <Upgrade />}
     </Card>
   )
 }
@@ -157,7 +132,7 @@ function PlanCard() {
 export default function Account() {
   const auth = useAuth()
   const { dataset, setDataset } = useFarm()
-  const wantsGrower = query().get('plan') === 'grower'
+  const wantsGrower = query().get('plan') === 'season'
 
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-5">
@@ -172,7 +147,7 @@ export default function Account() {
         <p className="flex items-center gap-2 text-muted"><Loader2 aria-hidden className="size-5 animate-spin" /> Checking sign-in…</p>
       ) : !auth.userId ? (
         <>
-          {wantsGrower && <p className="rounded-xl bg-leaf-soft p-3">Sign in first, then you can choose Grower. It takes a minute.</p>}
+          {wantsGrower && <p className="rounded-xl bg-leaf-soft p-3">Sign in first, then you can choose the Season plan. It takes a minute.</p>}
           <SignIn />
         </>
       ) : (

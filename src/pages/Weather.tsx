@@ -52,14 +52,14 @@ export default function Weather() {
                 </div>
                 <div className="text-sm">{word}</div>
                 <div className="mt-1 text-sm text-muted tabular-nums">
-                  Rain {d.rainMm.toFixed(0)} mm · ET₀ {d.et0Mm.toFixed(1)} mm
+                  Rain {d.rainMm.toFixed(0)} mm · Dry-out {d.et0Mm.toFixed(1)} mm
                 </div>
               </Card>
             </li>
           )
         })}
       </ol>
-      <p className="text-sm text-muted">ET₀ is how much water a reference grass crop would lose that day. Higher ET₀ means your crops dry out faster.</p>
+      <p className="text-sm text-muted">Dry-out is how much water the sun and wind pull from the soil that day, in mm. A higher number means your crops dry out faster.</p>
     </div>
   )
 }

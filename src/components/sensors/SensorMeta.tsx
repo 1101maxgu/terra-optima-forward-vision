@@ -5,7 +5,7 @@ import type { Sensor, SensorReading, SensorType } from '../../types'
 import { useFarm } from '../../state/farmStore'
 import { timeAgo } from '../../ui/kit'
 
-export const TYPE_LABEL: Record<SensorType, string> = { lorawan: 'LoRaWAN', esp32: 'Wi-Fi (ESP32)', manual: 'Manual' }
+export const TYPE_LABEL: Record<SensorType, string> = { lorawan: 'Long-range radio', esp32: 'Wi-Fi (ESP32)', manual: 'Manual' }
 
 export function latestSensorReading(readings: SensorReading[], sensorId: string): SensorReading | null {
   let best: SensorReading | null = null

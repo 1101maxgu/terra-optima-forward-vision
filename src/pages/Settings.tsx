@@ -3,6 +3,7 @@ import { Play, RotateCcw } from 'lucide-react'
 import { OUTCOME_DEFAULTS, useFarm, type OutcomeSettings } from '../state/farmStore'
 import { COST_META, type CostAssumptions } from '../engine/outcomes'
 import CsvImport from '../components/CsvImport'
+import AlertPreview from '../components/AlertPreview'
 import Luke from '../guide/Luke'
 import { startTour } from '../guide/Tour'
 import { Card, PageHeader } from '../ui/kit'
@@ -160,7 +161,7 @@ export default function Settings() {
           onChange={setDataset}
           options={[
             { v: 'sample', title: 'Sample farm', desc: 'A fictional farm with simulated sensors, for trying GeoViva out.' },
-            { v: 'mine', title: 'My farm', desc: 'Your own zones, sensors and readings, saved on this device.' },
+            { v: 'mine', title: 'My farm', desc: 'Your own field sections, sensors and readings, saved on this device.' },
           ]}
         />
         {dataset === 'sample' && (
@@ -172,6 +173,11 @@ export default function Settings() {
             <RotateCcw aria-hidden className="size-5" /> Reset sample farm
           </button>
         )}
+      </Card>
+
+      <Card>
+        <h2 className="mb-4 text-xl font-bold">Text alerts</h2>
+        <AlertPreview />
       </Card>
 
       <Card>

@@ -14,10 +14,10 @@ interface Step {
 
 const STEPS: Step[] = [
   { title: 'Hi, I’m Luke!', text: 'I’ll show you around GeoViva in under a minute. You’re looking at the Sample farm, a pretend farm you can explore without breaking anything.' },
-  { target: 'nav-home', title: 'Home', text: 'Your farm at a glance: which zones need water today, the latest readings, the weather and any alerts.' },
-  { target: 'nav-zones', title: 'Zones', text: 'A zone is one field or bed. Tap “Create new zone” to draw yours on the map and get watering advice for it.' },
+  { target: 'nav-home', title: 'Home', text: 'Your farm at a glance: which field sections need water today, the latest readings, the weather and any alerts.' },
+  { target: 'nav-zones', title: 'Field sections', text: 'A field section is one field or bed. Tap “Create new field section” to draw yours on the map and get watering advice for it.' },
   { target: 'nav-sensors', title: 'Sensors', text: 'Add soil sensors here, or just type in readings yourself. No hardware needed to start.' },
-  { target: 'nav-reports', title: 'Reports', text: 'See how much water you’ve used, zone by zone.' },
+  { target: 'nav-reports', title: 'Reports', text: 'See how much water you’ve used, section by section.' },
   { target: 'nav-settings', title: 'Settings', text: 'Switch from the Sample farm to My farm when you’re ready. The Help guides live here too.' },
   { target: 'luke', title: 'Ask me anything', text: 'Tap me whenever you’re stuck. Have a great season!' },
 ]

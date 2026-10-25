@@ -35,7 +35,7 @@ export default function WeatherStrip() {
             <div className={`mt-2 text-sm font-medium tabular-nums ${d.rainMm >= 3 ? 'text-water' : 'text-muted'}`}>
               {d.rainMm.toFixed(0)} mm rain
             </div>
-            <div className="text-sm text-muted tabular-nums">ET₀ {d.et0Mm.toFixed(1)}</div>
+            <div className="text-sm text-muted tabular-nums">Dry-out {d.et0Mm.toFixed(1)} mm</div>
           </li>
         ))}
       </ol>

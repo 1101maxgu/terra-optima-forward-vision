@@ -8,9 +8,9 @@ export const SAMPLE_FARM: Farm = {
   lat: 49.05,
   lon: -122.3,
   zones: [
-    { id: 'a', name: 'Zone A · Field tomatoes', cropId: 'tomato', soilId: 'loam', method: 'drip', areaM2: 2000 },
-    { id: 'b', name: 'Zone B · Salad lettuce', cropId: 'lettuce', soilId: 'sandy-loam', method: 'sprinkler', areaM2: 1400 },
-    { id: 'c', name: 'Zone C · Blueberries', cropId: 'blueberry', soilId: 'silt-loam', method: 'drip', areaM2: 3200 },
+    { id: 'a', name: 'Section A · Field tomatoes', cropId: 'tomato', soilId: 'loam', method: 'drip', areaM2: 2000 },
+    { id: 'b', name: 'Section B · Salad lettuce', cropId: 'lettuce', soilId: 'sandy-loam', method: 'sprinkler', areaM2: 1400 },
+    { id: 'c', name: 'Section C · Blueberries', cropId: 'blueberry', soilId: 'silt-loam', method: 'drip', areaM2: 3200 },
   ],
 }
 

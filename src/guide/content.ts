@@ -1,7 +1,7 @@
 // All guide text lives here (plain data, no React) so the Help pages, Luke's offline search and the
 // assistant's server prompt share one source. Draft for review: wording is mine, facts come from the code.
 
-import { BUNDLE, EXTRA_SENSOR, FREE, GROWER, money, POLICIES, PRICES_ARE_DRAFT, SENSOR, SPONSORED_LINE } from '../pricing/plans.js' // .js: the server imports this file as Node ESM
+import { FREE, money, POLICIES, PRICES_ARE_DRAFT, RENTAL, SEASON, SPONSORED_LINE } from '../pricing/plans.js' // .js: the server imports this file as Node ESM
 
 export type IconKey = 'start' | 'zones' | 'sensors' | 'advice' | 'weather' | 'hardware' | 'offline' | 'pricing' | 'luke'
 
@@ -42,10 +42,10 @@ export const TOPICS: Topic[] = [
         heading: 'Finding your way around',
         steps: [
           'Home: your farm at a glance, with today’s watering advice, recent readings, the forecast and alerts.',
-          'Zones: each field or bed with the same crop and soil. Tap one to see its advice, moisture chart and history.',
+          'Field sections: each field or bed with the same crop and soil. Tap one to see its advice, moisture chart and history.',
           'Sensors: every sensor and manual-reading source, and the place to add a new one.',
           'Weather: the forecast for your farm.',
-          'Reports: how much water you applied, by zone.',
+          'Reports: how much water you applied, by field section.',
           'Settings (called “More” on a phone): farm details, weather source, and switching between Sample farm and My farm.',
         ],
       },
@@ -66,32 +66,32 @@ export const TOPICS: Topic[] = [
   },
   {
     id: 'zones',
-    title: 'Creating your farm and zones',
+    title: 'Creating your farm and field sections',
     summary: 'Draw a field on the map and tell GeoViva what grows there.',
     icon: 'zones',
-    askLuke: 'How do I create a zone?',
-    keywords: ['field', 'bed', 'boundary', 'draw', 'map', 'crop', 'soil', 'wizard', 'area'],
+    askLuke: 'How do I create a field section?',
+    keywords: ['zone', 'zones', 'section', 'field', 'bed', 'boundary', 'draw', 'map', 'crop', 'soil', 'wizard', 'area'],
     blocks: [
       {
-        body: 'A zone is one field or bed with the same crop, soil and watering method. Advice is given per zone, so keep zones uniform.',
+        body: 'A field section is one field or bed with the same crop, soil and watering method. Advice is given per field section, so keep field sections uniform.',
       },
       {
-        heading: 'Create a zone',
+        heading: 'Create a field section',
         steps: [
-          'Open Zones and tap “Create new zone”.',
+          'Open Field sections and tap “Create new field section”.',
           'Location: search for your farm or move the map to it.',
           'Draw: tap points around the edge of the field, then finish the shape. Satellite view helps you see the field edges.',
-          'Details: name the zone and choose the crop, soil and watering method.',
+          'Details: name the field section and choose the crop, soil and watering method.',
           'Sensors: connect a sensor, or choose manual readings if you have no hardware.',
           'Review: check everything and save. Your progress is saved on the phone if you get interrupted.',
         ],
       },
       {
         heading: 'Fix a boundary',
-        steps: ['Open the zone.', 'Choose to edit the boundary.', 'Drag the corner points, then save.'],
+        steps: ['Open the field section.', 'Choose to edit the boundary.', 'Drag the corner points, then save.'],
       },
       {
-        note: { kind: 'tip', text: 'The map needs a connection. If you are in the field with no signal, draw the zone later from home or the office.' },
+        note: { kind: 'tip', text: 'The map needs a connection. If you are in the field with no signal, draw the field section later from home or the office.' },
       },
     ],
   },
@@ -109,7 +109,7 @@ export const TOPICS: Topic[] = [
       {
         heading: 'Enter a reading by hand',
         steps: [
-          'Open the zone and go to its moisture tab.',
+          'Open the field section and go to its moisture tab.',
           'Enter the soil moisture (%). Soil temperature is optional.',
           'Save. The advice updates straight away.',
         ],
@@ -121,11 +121,11 @@ export const TOPICS: Topic[] = [
           'Pick how it connects: “Existing LoRaWAN network”, “GeoViva Wi-Fi sensor” or “Manual readings”.',
           'LoRaWAN: choose your region, enter your The Things Stack details, then pick the devices to import.',
           'Wi-Fi sensor: type the device code printed on the sensor’s label to claim it.',
-          'Assign the sensor to a zone, and set its depth and location if asked.',
+          'Assign the sensor to a field section, and set its depth and location if asked.',
         ],
       },
       {
-        heading: 'Import a spreadsheet (CSV)',
+        heading: 'Import a spreadsheet (spreadsheet)',
         body: 'Have readings in a spreadsheet? Open Settings, find the CSV import, and follow the prompts. Save your spreadsheet as CSV first. A sample file is included to show the layout.',
       },
       {
@@ -139,23 +139,23 @@ export const TOPICS: Topic[] = [
     title: 'Reading your advice',
     summary: 'What the statuses mean and why GeoViva says what it says.',
     icon: 'advice',
-    askLuke: 'Why does my zone say Water today?',
+    askLuke: 'Why does my field section say Water today?',
     keywords: ['recommendation', 'why', 'irrigation', 'water today', 'water soon', 'check sensor', 'stale', 'field capacity', 'refill'],
     blocks: [
       {
         heading: 'Recommendation card',
-        body: 'Open a zone to see its status, how much to apply, and the “Why this recommendation” list. Each line shows a factor (like soil moisture, rain forecast or crop stage) with an arrow: ↑ raises the need to water, ↓ lowers it, → makes no difference. A badge shows where each number came from.',
+        body: 'Open a field section to see its status, how much to apply, and the “Why this recommendation” list. Each line shows a factor (like soil moisture, rain forecast or crop stage) with an arrow: ↑ raises the need to water, ↓ lowers it, → makes no difference. A badge shows where each number came from.',
       },
       {
         heading: 'The moisture chart',
-        body: 'The dotted blue line is field capacity (soil is full). The dotted red line is the refill level. When moisture falls to the red line, it is time to water.',
+        body: 'The dotted blue line shows when the soil is full of water. The dotted red line is the refill level. When moisture falls to the red line, it is time to water.',
       },
       {
         heading: 'If it says “Check sensor”',
         steps: [
-          'The zone has no readings yet: add a manual reading or connect a sensor.',
+          'The field section has no readings yet: add a manual reading or connect a sensor.',
           'The latest reading is too old to trust: take a new reading or check the sensor.',
-          'A sensor in the zone is offline: see Hardware, “Troubleshooting”.',
+          'A sensor in the field section is offline: see Hardware, “Troubleshooting”.',
         ],
       },
       {
@@ -177,11 +177,11 @@ export const TOPICS: Topic[] = [
       },
       {
         heading: 'Log the water you applied',
-        steps: ['Open the zone and go to its irrigation tab.', 'Enter the amount, in mm or litres.', 'Add a note if you like, then save.'],
+        steps: ['Open the field section and go to its irrigation tab.', 'Enter the amount, in mm or litres.', 'Add a note if you like, then save.'],
       },
       {
         heading: 'Reports',
-        body: 'Reports adds up the water you logged, with a breakdown by zone, so you can see where it goes.',
+        body: 'Reports adds up the water you logged, with a breakdown by field section, so you can see where it goes.',
       },
     ],
   },
@@ -205,9 +205,9 @@ export const TOPICS: Topic[] = [
       {
         heading: 'Where to put a sensor',
         steps: [
-          'Choose a spot that is typical of the zone, not the wettest corner or next to a drip emitter or sprinkler.',
-          'One sensor per zone is the minimum. Zones with mixed soil need more, or should be split.',
-          'Put it in the crop’s root zone. The app records the depth, 15 cm by default for the Wi-Fi sensor.',
+          'Choose a spot that is typical of the field section, not the wettest corner or next to a drip emitter or sprinkler.',
+          'One sensor per field section is the minimum. Field sections with mixed soil need more, or should be split.',
+          'Put it in the crop’s root field section. The app records the depth, 15 cm by default for the Wi-Fi sensor.',
           'Keep it within signal range: Wi-Fi sensors need Wi-Fi, LoRaWAN sensors need a gateway.',
         ],
       },
@@ -228,7 +228,7 @@ export const TOPICS: Topic[] = [
           'Open Sensors, tap “Add sensor”.',
           'LoRaWAN: choose “Existing LoRaWAN network”, then follow the prompts to import your devices.',
           'Wi-Fi sensor: choose “GeoViva Wi-Fi sensor” and enter the claim code on its label.',
-          'Assign it to its zone and set its depth. Optionally set its location on the map.',
+          'Assign it to its field section and set its depth. Optionally set its location on the map.',
           'Wait for the first reading. The Wi-Fi sensor reports about every 15 minutes.',
         ],
       },
@@ -286,7 +286,7 @@ export const TOPICS: Topic[] = [
         heading: 'Works with no signal',
         steps: [
           'This guide, once you have opened the app with a connection at least once.',
-          'Your saved zones, sensors and readings on this phone.',
+          'Your saved field sections, sensors and readings on this phone.',
           'Typing in manual readings.',
         ],
       },
@@ -311,17 +311,15 @@ export const TOPICS: Topic[] = [
     summary: 'What is free, what costs money, and how cancelling works.',
     icon: 'pricing',
     askLuke: 'Which plan is right for my farm?',
-    keywords: ['price', 'cost', 'pay', 'subscription', 'plan', 'free', 'grower', 'bundle', 'cancel', 'refund', 'tax', 'shipping', 'money', 'how much'],
+    keywords: ['price', 'cost', 'pay', 'subscription', 'plan', 'free', 'season', 'rental', 'rent', 'sensor', 'cancel', 'refund', 'tax', 'shipping', 'money', 'how much'],
     blocks: [
       ...(PRICES_ARE_DRAFT ? [{ note: { kind: 'warn' as const, text: 'These are draft prices while GeoViva is in pilot. They may change before launch.' } }] : []),
       {
         heading: 'The plans (Canadian dollars, plus GST/PST)',
         steps: [
-          `Free, $0: up to ${FREE.zones} zones, ${FREE.sensors} connected sensor, unlimited manual readings and CSV import, watering advice, weather, reports for the last ${FREE.reportDays} days, ${FREE.historyDays} days of history.`,
-          `Grower, ${money(GROWER.monthly)} a month or ${money(GROWER.yearly)} a year: unlimited zones, ${GROWER.sensorsIncluded} sensors included, ${GROWER.reportDays}-day reports, 1 year of history. For farms that already have sensors.`,
-          `Extra sensors on Grower: ${money(EXTRA_SENSOR.monthly)} a month or ${money(EXTRA_SENSOR.yearly)} a year each.`,
-          `Starter bundle, ${money(BUNDLE.price)} once: ${BUNDLE.sensors} GeoViva sensors plus the first year of Grower.`,
-          `Sensor only, ${money(SENSOR.price)} each: works on the Free plan. Shipping is ${money(SENSOR.shipping)} per order.`,
+          `Free, $0: as many sections of your field as you like, as many sensors as you like, unlimited typed-in readings and spreadsheet uploads, watering advice, weather, reports for the last ${FREE.reportDays} days, ${FREE.historyDays} days of history. Luke and text alerts are not included.`,
+          `Season plan, ${money(SEASON.price)} for the whole farm for one season of ${SEASON.months} months: everything in Free, plus Luke, text alerts, ${SEASON.reportDays}-day reports and 1 year of history.`,
+          `Sensor rental, ${money(RENTAL.price)} per sensor per season, on any plan. Shipping is included. You never buy the hardware.`,
         ],
       },
       {
@@ -330,7 +328,7 @@ export const TOPICS: Topic[] = [
       },
       {
         heading: 'See your own cost',
-        body: 'Open Plans and pricing from the menu (under “More” on a phone). The calculator there adds up your first year and each year after for your number of zones and sensors.',
+        body: 'Open Plans and pricing from the menu (under “More” on a phone). The calculator there adds up your first year and each year after for your number of field sections and sensors.',
       },
     ],
   },
@@ -344,19 +342,19 @@ export const TOPICS: Topic[] = [
     blocks: [
       {
         heading: 'Luke',
-        body: 'Luke is the little leaf in the corner of the screen. Tap him to ask a question. He can explain how the app works and why a zone has the status it does. He cannot change anything, and he is not an agronomist: for crop decisions, ask your local extension office or advisor.',
+        body: 'Luke is the little leaf in the corner of the screen. Tap him to ask a question. He can explain how the app works and why a field section has the status it does. He cannot change anything, and he is not an agronomist: for crop decisions, ask your local extension office or advisor.',
       },
       {
         heading: 'Words you may see',
         steps: [
-          'Zone: one field or bed with the same crop and soil.',
+          'Field section: one field or bed with the same crop and soil.',
           'Soil moisture (%): how much water the soil holds, as a percentage of its volume.',
           'Field capacity: the most water the soil can hold after draining. A full soil.',
           'Refill level: the moisture where plants start to struggle and you should water.',
           'mm: millimetres of water over the ground. 1 mm over 1 m² is 1 litre.',
           'Stale: a reading that is too old to rely on.',
           'LoRaWAN: a long-range, low-power radio network for sensors.',
-          'Gateway: the box that picks up LoRaWAN sensor signals and passes them online.',
+          'Hub (gateway): a small box that picks up signals from your sensors and sends the readings to your phone.',
           'Claim code: the code on a Wi-Fi sensor’s label that links it to your farm.',
         ],
       },

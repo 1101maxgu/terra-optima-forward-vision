@@ -17,7 +17,7 @@ export default class ErrorBoundary extends Component<{ children: ReactNode; rese
     return (
       <div role="alert" className="mx-auto mt-10 max-w-lg rounded-2xl border border-alert/30 bg-alert-soft p-6">
         <h1 className="text-xl font-bold text-alert">Something went wrong on this screen</h1>
-        <p className="mt-2">Your saved zones and any unfinished zone draft are safe.</p>
+        <p className="mt-2">Your saved field sections and any unfinished field section draft are safe.</p>
         <p className="mt-1 text-sm text-muted">{this.state.error.message}</p>
         <div className="mt-4 flex gap-2">
           <button type="button" className="btn-primary min-h-11" onClick={() => this.setState({ error: null })}>Try again</button>
