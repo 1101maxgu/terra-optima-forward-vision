@@ -40,7 +40,7 @@ function Amount({ st, z }: Row) {
 }
 
 export default function Home() {
-  const { farm, zones, sensors, readings, weather, dataset, zoneStatus, sensorState } = useFarm()
+  const { farm, zones, sensors, readings, weather, dataset, setDataset, zoneStatus, sensorState } = useFarm()
   const alerts = useAlerts()
   const rows: Row[] = zones.map((z) => ({ z, st: zoneStatus(z.id) }))
   const byUrgency = [...rows].sort((a, b) => STATUS_RANK[a.st.status] - STATUS_RANK[b.st.status] || (b.st.rec?.grossMm ?? 0) - (a.st.rec?.grossMm ?? 0))
@@ -66,6 +66,12 @@ export default function Home() {
   return (
     <div className="flex flex-col gap-5">
       {dataset === 'sample' && <SampleBanner />}
+      {dataset === 'mine' && zones.length === 0 && (
+        <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-line bg-leaf-soft p-4">
+          <p className="min-w-0 flex-1 basis-60 font-semibold">New here? See GeoViva working on a sample farm first.</p>
+          <button type="button" onClick={() => setDataset('sample')} className="btn-primary min-h-12">Try the demo farm</button>
+        </div>
+      )}
 
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
@@ -77,7 +83,7 @@ export default function Home() {
         </div>
         <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto">
           <a href="#/zones/new" className="btn-primary col-span-2 inline-flex min-h-12 items-center justify-center gap-2 text-center">
-            <Plus aria-hidden className="size-5 shrink-0" /> <span>Create new zone</span>
+            <Plus aria-hidden className="size-5 shrink-0" /> <span>Create new field section</span>
           </a>
           <a href="#/sensors" className="btn-secondary inline-flex min-h-12 items-center justify-center gap-2 text-center">
             <Radio aria-hidden className="size-5 shrink-0" /> <span>Add sensor</span>
@@ -89,7 +95,7 @@ export default function Home() {
       </div>
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-3 xl:grid-cols-5 [&>*:last-child]:col-span-2 lg:[&>*:last-child]:col-span-1">
-        <StatCard icon={<Sprout className="size-6" />} tone="bg-leaf-soft text-leaf" value={zones.length} label="Total zones" sub={`${rows.filter((r) => r.z.boundary).length} mapped`} />
+        <StatCard icon={<Sprout className="size-6" />} tone="bg-leaf-soft text-leaf" value={zones.length} label="Total field sections" sub={`${rows.filter((r) => r.z.boundary).length} mapped`} />
         <StatCard
           icon={<Radio className="size-6" />}
           tone="bg-water-soft text-water"
@@ -102,14 +108,14 @@ export default function Home() {
           tone="bg-water-soft text-water"
           value={fmtPct(avgMoisture)}
           label="Average soil moisture"
-          sub={fresh.length ? `${fresh.length} zone${fresh.length === 1 ? '' : 's'} reporting` : 'No fresh readings'}
+          sub={fresh.length ? `${fresh.length} field section${fresh.length === 1 ? '' : 's'} reporting` : 'No fresh readings'}
         />
         <StatCard
           icon={<CalendarClock className="size-6" />}
           tone={next?.st.status === 'water-today' ? 'bg-alert-soft text-alert' : 'bg-sun-soft text-sun'}
           value={next ? (next.st.status === 'water-today' ? 'Today' : 'Within 48 h') : 'None due'}
           label="Next irrigation"
-          sub={next?.st.rec ? `${shortName(next.z.name)} · ${next.st.rec.grossMm} mm` : 'No zone needs water now'}
+          sub={next?.st.rec ? `${shortName(next.z.name)} · ${next.st.rec.grossMm} mm` : 'No field section needs water now'}
         />
         <StatCard
           icon={look ? <look.Icon className="size-6" /> : <CloudSun className="size-6" />}
@@ -125,16 +131,16 @@ export default function Home() {
       {zones.length === 0 ? (
         <Card className="flex flex-col items-center gap-3 py-10 text-center">
           <Sprout aria-hidden className="size-10 text-leaf" />
-          <h2 className="text-xl font-bold">Set up your first zone</h2>
+          <h2 className="text-xl font-bold">Set up your first field section</h2>
           <p className="max-w-md text-muted">Draw a field on the map, choose the crop and soil, and GeoViva will tell you when and how much to water.</p>
           <a href="#/zones/new" className="btn-primary inline-flex min-h-12 items-center gap-2">
-            <Plus aria-hidden className="size-5" /> Create your first zone
+            <Plus aria-hidden className="size-5" /> Create your first field section
           </a>
         </Card>
       ) : (
         <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_340px] 2xl:grid-cols-[minmax(0,1fr)_400px]">
           <Card className="">
-            <SectionTitle icon={<MapIcon aria-hidden className="size-5 text-leaf" />} title="Farm overview" action={<a href="#/zones">All zones →</a>} />
+            <SectionTitle icon={<MapIcon aria-hidden className="size-5 text-leaf" />} title="Farm overview" action={<a href="#/zones">All field sections →</a>} />
             <Suspense fallback={<MapSkeleton className="h-72 md:h-[420px]" />}>
               <FarmMap
                 zones={zones}
@@ -147,7 +153,7 @@ export default function Home() {
             </Suspense>
           </Card>
           <Card>
-            <SectionTitle icon={<Sprout aria-hidden className="size-5 text-leaf" />} title="Zones" action={<a href="#/zones">View all →</a>} />
+            <SectionTitle icon={<Sprout aria-hidden className="size-5 text-leaf" />} title="Field sections" action={<a href="#/zones">View all →</a>} />
             <ul className="-mx-2 divide-y divide-line">
               {byUrgency.map(({ z, st }) => (
                 <li key={z.id}>
@@ -184,7 +190,7 @@ export default function Home() {
             <table className="hidden w-full text-left md:table">
               <thead className="border-b border-line text-sm text-muted">
                 <tr>
-                  <th className="py-2 pr-2 font-medium">Zone</th>
+                  <th className="py-2 pr-2 font-medium">Field section</th>
                   <th className="py-2 pr-2 font-medium">Recommended</th>
                   <th className="py-2 font-medium">Status</th>
                 </tr>

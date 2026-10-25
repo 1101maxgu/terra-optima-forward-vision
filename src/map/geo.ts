@@ -25,7 +25,7 @@ export function validatePolygon(p: GeoPolygon | null | undefined): string | null
     return 'The boundary crosses itself. Move a corner so the lines don’t cross.'
   const a = polygonAreaM2(p)
   if (!Number.isFinite(a)) return 'Could not calculate the area of this boundary.'
-  if (a < MIN_ZONE_AREA_M2) return `This zone is very small (${Math.round(a)} m²). Draw a larger area.`
+  if (a < MIN_ZONE_AREA_M2) return `This field section is very small (${Math.round(a)} m²). Draw a larger area.`
   return null
 }
 

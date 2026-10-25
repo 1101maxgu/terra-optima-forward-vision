@@ -25,7 +25,7 @@ export default function CsvImport() {
         Import sensor or manual readings
       </h2>
       <p className="text-muted">
-        CSV columns: <code className="rounded bg-paper px-1 font-mono text-sm">date,zone,moisture[,soil_temp_c]</code>. The newest reading per zone
+        CSV columns: <code className="rounded bg-paper px-1 font-mono text-sm">date,field section,moisture[,soil_temp_c]</code>. The newest reading per field section
         drives the dashboard.{' '}
         <a href="/sample-readings.csv" download className="font-medium text-water underline underline-offset-4">
           Download example CSV

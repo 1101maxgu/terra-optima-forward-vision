@@ -20,7 +20,7 @@ const H2 = 'text-base font-bold'
 /** Why a zone is in "Check sensor", in plain words. */
 export function checkReason(zs: ZoneStatus, offline: number): string {
   const parts: string[] = []
-  if (!zs.lastUpdate && zs.discounted.length) parts.push(`Every probe in this zone looks faulty, so there is no reading to trust. ${zs.discounted[0].reason}`)
+  if (!zs.lastUpdate && zs.discounted.length) parts.push(`Every probe in this field section looks faulty, so there is no reading to trust. ${zs.discounted[0].reason}`)
   else if (!zs.lastUpdate) parts.push('No soil moisture readings yet. Add a manual reading or connect a sensor.')
   else if (zs.freshness !== 'fresh') parts.push(`The latest reading is from ${timeAgo(zs.lastUpdate)}, too old to base a watering decision on.`)
   if (offline) parts.push(`${offline} sensor${offline > 1 ? 's are' : ' is'} offline.`)
@@ -124,7 +124,7 @@ export default function Overview({ zone, zs, onAddReading, onViewData }: { zone:
   return (
     <div className="flex flex-col gap-4">
       <div className="grid gap-4 lg:grid-cols-[3fr_2fr]">
-        <section className="flex flex-col gap-2" aria-label="Zone map">
+        <section className="flex flex-col gap-2" aria-label="Field section map">
           {zone.boundary ? (
             <div className="relative">
               <Suspense fallback={<MapSkeleton className="h-64 sm:h-80" />}>
@@ -151,7 +151,7 @@ export default function Overview({ zone, zs, onAddReading, onViewData }: { zone:
           {outside.map((s) => (
             <p key={s.id} role="alert" className="flex gap-2 rounded-lg border border-sun/40 bg-sun-soft p-2 text-sm">
               <AlertTriangle className="size-4 shrink-0 text-sun" aria-hidden />
-              <span><b>{s.name}:</b> Sensor location appears outside this zone.</span>
+              <span><b>{s.name}:</b> Sensor location appears outside this field section.</span>
             </p>
           ))}
         </section>
@@ -215,7 +215,7 @@ export default function Overview({ zone, zs, onAddReading, onViewData }: { zone:
             <div>
               <p className="text-xl font-bold">{soil.name}</p>
               <p className="font-medium">{SOIL_DRAINAGE[soil.id]}</p>
-              <p className="text-sm text-muted">{rec ? `Holds ${Math.round(rec.tawMm)} mm in the root zone` : SOIL_TEXT[soil.id]}</p>
+              <p className="text-sm text-muted">{rec ? `Holds ${Math.round(rec.tawMm)} mm in the root field section` : SOIL_TEXT[soil.id]}</p>
             </div>
           </div>
         </Card>
@@ -232,7 +232,7 @@ export default function Overview({ zone, zs, onAddReading, onViewData }: { zone:
             {zs.sensors.length === 0 ? (
               <div className="mt-2 flex items-start gap-2">
                 <Luke className="size-9 shrink-0" />
-                <p className="text-muted">No sensors assigned to this zone. <a className="font-medium text-leaf underline" href="#/sensors">Connect a sensor</a> or add manual readings. <a className="font-medium text-water underline" href="#/help/hardware">How to install one</a></p>
+                <p className="text-muted">No sensors assigned to this field section. <a className="font-medium text-leaf underline" href="#/sensors">Connect a sensor</a> or add manual readings. <a className="font-medium text-water underline" href="#/help/hardware">How to install one</a></p>
               </div>
             ) : (
               <ul className="mt-1 divide-y divide-line">
@@ -286,7 +286,7 @@ export default function Overview({ zone, zs, onAddReading, onViewData }: { zone:
                 <WhyPanel factors={rec.factors} confidence={rec.confidence} />
               </div>
             ) : (
-              <p className="mt-2 text-muted">Available once this zone has a soil moisture reading.</p>
+              <p className="mt-2 text-muted">Available once this field section has a soil moisture reading.</p>
             )}
           </details>
         </div>

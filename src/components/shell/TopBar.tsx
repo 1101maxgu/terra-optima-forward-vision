@@ -72,7 +72,7 @@ function SearchBox() {
       >
         <label className="flex items-center gap-2 rounded-xl border border-line bg-surface px-3 focus-within:border-water">
           <Search aria-hidden className="size-5 text-muted" />
-          <span className="sr-only">Search zones and sensors</span>
+          <span className="sr-only">Search field sections and sensors</span>
           <input
             value={q}
             onChange={(e) => {
@@ -80,14 +80,14 @@ function SearchBox() {
               setOpen(true)
             }}
             onFocus={() => setOpen(true)}
-            placeholder="Search zones or sensors…"
+            placeholder="Search field sections or sensors…"
             className="h-11 w-full bg-transparent outline-none"
           />
         </label>
       </form>
       {open && t && (
         <ul className="absolute inset-x-0 top-full z-40 mt-1 overflow-hidden rounded-xl border border-line bg-surface shadow-lg">
-          {hits.length === 0 && <li className="px-4 py-3 text-muted">No zones or sensors match “{q}”.</li>}
+          {hits.length === 0 && <li className="px-4 py-3 text-muted">No field sections or sensors match “{q}”.</li>}
           {hits.map((h) => (
             <li key={h.kind + h.key}>
               <button type="button" onClick={() => go(h.href)} className="flex min-h-12 w-full items-center gap-3 px-4 text-left hover:bg-paper">

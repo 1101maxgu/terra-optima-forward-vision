@@ -80,7 +80,7 @@ export function StepDraw({ d, set }: StepProps) {
     return (
       <Card className="space-y-3">
         <p className="text-lg font-bold">Boundary skipped</p>
-        <p className="text-muted">You'll enter the area by hand on the next step, and can draw the boundary later from the zone page.</p>
+        <p className="text-muted">You'll enter the area by hand on the next step, and can draw the boundary later from the field section page.</p>
         <button type="button" className="btn-secondary min-h-11" onClick={() => set({ skipBoundary: false })}>Draw the boundary instead</button>
       </Card>
     )
@@ -93,7 +93,7 @@ export function StepDraw({ d, set }: StepProps) {
       </Suspense>
       <div aria-live="polite">{error && <ErrorNote>{error}</ErrorNote>}</div>
       <div>
-        <p className="mb-1 font-semibold">Zone area</p>
+        <p className="mb-1 font-semibold">Field section area</p>
         <div className="flex flex-wrap items-center gap-3">
           <output className={`${inputBase} w-28 font-semibold tabular-nums`}>{area ? toUnit(area, unit) : '—'}</output>
           <UnitSelect unit={unit} onChange={setUnit} />
@@ -130,7 +130,7 @@ export function StepDetails({ d, set }: StepProps) {
   const label = (t: string, req?: boolean) => <>{t}{req && <Req />}</>
   return (
     <div className="max-w-xl space-y-5">
-      <Field label={label('Zone name', true)} hint="e.g. North field, Greenhouse 1">
+      <Field label={label('Field section name', true)} hint="e.g. North field, Greenhouse 1">
         {(id) => <input id={id} className={inputCls} value={d.name} maxLength={60} required onChange={(e) => set({ name: e.target.value })} />}
       </Field>
       <LabeledSelect label={label('Crop type', true)} value={d.cropId} onChange={(v) => set({ cropId: v as CropId })}
@@ -219,7 +219,7 @@ export function StepSensors({ d, set }: StepProps) {
       {d.sensorMethod === 'lorawan' && <LorawanConnect zoneId={null} onRegistered={addPending} />}
       {d.sensorMethod === 'esp32' && <Esp32Connect zoneId={null} onClaimed={(s) => addPending([s])} />}
       {d.sensorMethod === 'manual' && (
-        <Field label="First soil moisture reading (%) — optional" hint="From a handheld meter. Leave empty to skip; you can add readings any time from the zone page.">
+        <Field label="First soil moisture reading (%) — optional" hint="From a handheld meter. Leave empty to skip; you can add readings any time from the field section page.">
           {(id) => <input id={id} type="number" inputMode="decimal" min={0} max={100} step="any" className={`${inputBase} w-32`}
             value={d.manualReadingPct ?? ''} onChange={(e) => set({ manualReadingPct: e.target.value === '' ? null : Number(e.target.value) })} />}
         </Field>
@@ -227,7 +227,7 @@ export function StepSensors({ d, set }: StepProps) {
 
       {d.pendingSensors.length > 0 && (
         <section>
-          <p className="mb-2 font-semibold">Added to this zone</p>
+          <p className="mb-2 font-semibold">Added to this field section</p>
           <ul className="space-y-2">
             {d.pendingSensors.map((s) => <li key={s.id} className="flex gap-3 rounded-xl border-2 border-leaf bg-surface p-3"><Check aria-hidden className="mt-0.5 size-5 text-leaf" /><SensorSummary sensor={s} /></li>)}
           </ul>
@@ -236,7 +236,7 @@ export function StepSensors({ d, set }: StepProps) {
 
       {unassigned.length > 0 && (
         <fieldset>
-          <legend className="mb-2 font-semibold">Available sensors <span className="font-normal text-muted">(not in a zone yet)</span></legend>
+          <legend className="mb-2 font-semibold">Available sensors <span className="font-normal text-muted">(not in a field section yet)</span></legend>
           <div className="space-y-2">
             {unassigned.map((s) => (
               <label key={s.id} className="flex min-h-14 cursor-pointer items-start gap-3 rounded-xl border border-line bg-surface p-3 hover:border-ink has-checked:border-leaf">

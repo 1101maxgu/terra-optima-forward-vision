@@ -16,7 +16,7 @@ import TrustBadge, { TrustPanel } from '../components/TrustBadge'
 import type { ConnectMethod } from '../components/wizard/draft'
 
 type Tab = 'all' | 'lorawan' | 'esp32' | 'unassigned'
-const TABS: [Tab, string][] = [['all', 'All sensors'], ['lorawan', 'LoRaWAN'], ['esp32', 'Wi-Fi (ESP32)'], ['unassigned', 'Unassigned']]
+const TABS: [Tab, string][] = [['all', 'All sensors'], ['lorawan', 'Long-range radio'], ['esp32', 'Wi-Fi (ESP32)'], ['unassigned', 'Unassigned']]
 const matches = (s: Sensor, t: Tab) => t === 'all' || (t === 'unassigned' ? s.zoneId === null : s.type === t)
 
 export default function Sensors() {
@@ -119,7 +119,7 @@ function SensorRow({ sensor, onMenu }: { sensor: Sensor; onMenu: () => void }) {
               {zone.name} <ChevronRight aria-hidden className="size-4" />
             </a>
           ) : (
-            <span className="font-semibold text-sun">Not assigned to a zone</span>
+            <span className="font-semibold text-sun">Not assigned to a field section</span>
           )}
           <p className="text-muted">Soil moisture ({sensor.depthCm} cm){sensor.lat !== undefined ? ' · location set' : ''}</p>
         </div>
@@ -165,10 +165,10 @@ function SensorActions({ sensor, onClose }: { sensor: Sensor; onClose: () => voi
     return (
       <ConfirmDialog open title={`Remove ${sensor.name}?`} danger confirmLabel="Remove sensor" busy={busy} error={error} onCancel={() => setMode('menu')}
         onConfirm={() => act(() => deleteSensor(sensor.id))}
-        body="The sensor is removed from GeoViva. Readings already recorded stay in the zone's history. You can add it again later." />
+        body="The sensor is removed from GeoViva. Readings already recorded stay in the field section's history. You can add it again later." />
     )
 
-  const titles: Record<Mode, string> = { menu: sensor.name, rename: 'Rename sensor', assign: sensor.zoneId ? 'Move to zone' : 'Assign to zone', location: 'Set sensor location', readings: 'Recent readings', remove: '' }
+  const titles: Record<Mode, string> = { menu: sensor.name, rename: 'Rename sensor', assign: sensor.zoneId ? 'Move to field section' : 'Assign to field section', location: 'Set sensor location', readings: 'Recent readings', remove: '' }
   const item = (icon: ReactNode, label: string, onClick: () => void, danger = false) => (
     <li>
       <button type="button" onClick={onClick} className={`flex min-h-12 w-full items-center gap-3 rounded-lg px-3 text-left font-semibold hover:bg-stale-soft ${danger ? 'text-alert' : ''}`}>
@@ -181,8 +181,8 @@ function SensorActions({ sensor, onClose }: { sensor: Sensor; onClose: () => voi
       {mode === 'menu' && (
         <ul className="-mx-3">
           {item(<Pencil aria-hidden className="size-5" />, 'Rename', () => setMode('rename'))}
-          {item(<MoveRight aria-hidden className="size-5" />, sensor.zoneId ? 'Move to another zone' : 'Assign to zone', () => setMode('assign'))}
-          {sensor.zoneId && item(<Unlink aria-hidden className="size-5" />, 'Unassign from zone', () => act(() => assignSensor(sensor.id, null)))}
+          {item(<MoveRight aria-hidden className="size-5" />, sensor.zoneId ? 'Move to another field section' : 'Assign to field section', () => setMode('assign'))}
+          {sensor.zoneId && item(<Unlink aria-hidden className="size-5" />, 'Unassign from field section', () => act(() => assignSensor(sensor.id, null)))}
           {item(<MapPin aria-hidden className="size-5" />, 'Set sensor location', () => setMode('location'))}
           {item(<LineChart aria-hidden className="size-5" />, 'Review recent readings', () => setMode('readings'))}
           {item(<Trash2 aria-hidden className="size-5" />, 'Remove sensor', () => setMode('remove'), true)}
@@ -196,10 +196,10 @@ function SensorActions({ sensor, onClose }: { sensor: Sensor; onClose: () => voi
       )}
       {mode === 'assign' && (
         <form className="space-y-3" onSubmit={(e) => { e.preventDefault(); act(() => assignSensor(sensor.id, zoneId || null)) }}>
-          <Field label="Zone" hint="The sensor's readings will count toward this zone from now on.">
+          <Field label="Zone" hint="The sensor's readings will count toward this field section from now on.">
             {(id) => (
               <select id={id} className={inputCls} value={zoneId} onChange={(e) => setZoneId(e.target.value)}>
-                <option value="">No zone (unassigned)</option>
+                <option value="">No field section (unassigned)</option>
                 {zones.map((z) => <option key={z.id} value={z.id}>{z.name}</option>)}
               </select>
             )}
@@ -269,10 +269,10 @@ function AddSensor({ onDone }: { onDone: () => void }) {
   }
 
   const zoneSelect = (
-    <Field label="Zone (optional)">
+    <Field label="Field section (optional)">
       {(id) => (
         <select id={id} className={inputCls} value={zoneId} onChange={(e) => setZoneId(e.target.value)}>
-          <option value="">Not in a zone yet</option>
+          <option value="">Not in a field section yet</option>
           {zones.map((z) => <option key={z.id} value={z.id}>{z.name}</option>)}
         </select>
       )}
@@ -283,7 +283,7 @@ function AddSensor({ onDone }: { onDone: () => void }) {
     <div className="space-y-4">
       <MethodCards value={method} onChange={setMethod} />
       {(method === 'lorawan' || method === 'esp32') && atSensorLimit && (
-        <PlanNudge>{`Your plan covers ${limits?.sensors} connected sensor${limits?.sensors === 1 ? '' : 's'}, and you’re using ${connected}. Upgrade or add extra sensors to connect another. Manual readings are always free.`}</PlanNudge>
+        <PlanNudge>{`Your plan covers ${limits?.sensors} connected sensor${limits?.sensors === 1 ? '' : 's'}, and you’re using ${connected}. Manual readings are always free.`}</PlanNudge>
       )}
       {method === 'lorawan' && !atSensorLimit && <>{zoneSelect}<LorawanConnect zoneId={zoneId || null} onRegistered={mirror} /></>}
       {method === 'esp32' && !atSensorLimit && <>{zoneSelect}<Esp32Connect zoneId={zoneId || null} onClaimed={(s) => mirror([s])} /></>}

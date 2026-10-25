@@ -32,7 +32,7 @@ export function planFromRow(row: SubRow | undefined, now: number): FarmPlan {
   const plan: PlanId = paid ? 'grower' : 'free'
   return {
     plan,
-    ...limitsFor(plan, paid ? row.extra_sensors : 0),
+    ...limitsFor(plan),
     status: row?.status ?? null,
     interval: row?.billing_interval ?? null,
     extraSensors: row?.extra_sensors ?? 0,
@@ -56,7 +56,7 @@ export async function usage(db: Db, farmId: string) {
 }
 
 const limitError = (what: string) =>
-  new HttpError(402, 'plan_limit', `The Free plan includes ${what}. Upgrade to Grower in Plans and pricing to add more.`)
+  new HttpError(402, 'plan_limit', `The Free plan includes ${what}. Upgrade to the Season plan in Plans and pricing to add more.`)
 
 export async function assertCanAddZone(db: Db, farmId: string, now: number) {
   const p = await planFor(db, farmId, now)
@@ -69,7 +69,7 @@ export async function assertCanAddSensors(db: Db, farmId: string, now: number, a
   if ((await usage(db, farmId)).sensors + adding <= p.sensors) return
   throw p.plan === 'free'
     ? limitError(`${p.sensors} connected sensor`)
-    : new HttpError(402, 'plan_limit', `Your plan covers ${p.sensors} sensors. Add extra sensors from your account page.`)
+    : new HttpError(402, 'plan_limit', `Your plan covers ${p.sensors} sensors.`)
 }
 
 /** Read-only check for writes that touch one zone (edits, readings, irrigation events). */
@@ -80,7 +80,7 @@ export async function assertZoneWritable(db: Db, farmId: string, zoneId: string 
   const [r] = await db<{ rank: number }[]>`
     select rank from (select id, row_number() over (order by created_at, id)::int as rank from zones where farm_id = ${farmId}) z
     where id = ${zoneId}`
-  if (r && r.rank > p.zones) throw new HttpError(402, 'plan_read_only', 'This zone is read-only on the Free plan. Upgrade to Grower to edit it again.')
+  if (r && r.rank > p.zones) throw new HttpError(402, 'plan_read_only', 'This zone is read-only on the Free plan. Upgrade to the Season plan to edit it again.')
 }
 
 /** Ingest check: readings from sensors past the plan's allowance are not stored. */

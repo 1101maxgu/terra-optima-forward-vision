@@ -1,6 +1,8 @@
 // Client for the farm's plan and Stripe billing (server/routes/billing.ts). Payment pages are Stripe's:
 // we only ask the server for a Checkout or Customer Portal link and send the browser there.
-import type { Billing, Limits, PlanId } from '../pricing/plans'
+import type { Limits, PlanId } from '../pricing/plans'
+
+type Billing = 'monthly' | 'yearly'
 import { apiFetch, currentFarmId } from '../data/apiRepo'
 import { isBackendConfigured } from './deviceApi'
 

@@ -43,20 +43,20 @@ export default function Zones() {
 
   const create = (
     <a href="#/zones/new" className="btn-primary inline-flex min-h-12 items-center gap-2">
-      <Plus aria-hidden className="size-5" /> Create new zone
+      <Plus aria-hidden className="size-5" /> Create new field section
     </a>
   )
 
   if (zones.length === 0)
     return (
       <div className="flex flex-col gap-5">
-        <PageHeader title="My zones" help="zones" />
+        <PageHeader title="My field sections" help="zones" />
         <Card className="flex flex-col items-center gap-3 py-12 text-center">
           <Luke className="size-16" />
-          <h2 className="text-xl font-bold">No zones yet</h2>
-          <p className="max-w-md text-muted">A zone is one field or bed with the same crop, soil and watering method. Draw it on the map and GeoViva starts giving you watering advice.</p>
+          <h2 className="text-xl font-bold">No field sections yet</h2>
+          <p className="max-w-md text-muted">A field section is one field or bed with the same crop, soil and watering method. Draw it on the map and GeoViva starts giving you watering advice.</p>
           {create}
-          <button type="button" onClick={() => openLuke('How do I create my first zone?')} className="min-h-11 font-semibold text-water underline">
+          <button type="button" onClick={() => openLuke('How do I create my first field section?')} className="min-h-11 font-semibold text-water underline">
             Not sure where to start? Ask Luke
           </button>
         </Card>
@@ -65,8 +65,8 @@ export default function Zones() {
 
   return (
     <div className="flex flex-col gap-5">
-      <PageHeader title="My zones" subtitle={`${zones.length} zone${zones.length === 1 ? '' : 's'} on ${farm.name || 'your farm'}`} actions={atZoneLimit ? undefined : create} help="zones" />
-      {atZoneLimit && <PlanNudge>{`You’re using all ${limits?.zones} zones on the Free plan. Upgrade to Grower for unlimited zones.`}</PlanNudge>}
+      <PageHeader title="My field sections" subtitle={`${zones.length} field section${zones.length === 1 ? '' : 's'} on ${farm.name || 'your farm'}`} actions={atZoneLimit ? undefined : create} help="zones" />
+      {atZoneLimit && <PlanNudge>{`You’re using all ${limits?.zones} field sections on the Free plan. Get the Season plan to add more.`}</PlanNudge>}
 
       <div className="flex flex-wrap items-center gap-2">
         <div role="tablist" aria-label="View" className="flex rounded-xl border border-line bg-surface p-1">
@@ -85,8 +85,8 @@ export default function Zones() {
         </div>
         <label className="flex h-12 min-w-0 flex-1 basis-56 items-center gap-2 rounded-xl border border-line bg-surface px-3">
           <Search aria-hidden className="size-5 text-muted" />
-          <span className="sr-only">Search zones</span>
-          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search zones" className="w-full bg-transparent outline-none" />
+          <span className="sr-only">Search field sections</span>
+          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search field sections" className="w-full bg-transparent outline-none" />
         </label>
         <label className="sr-only" htmlFor="crop-f">
           Crop
@@ -149,16 +149,16 @@ export default function Zones() {
               </div>
             </Card>
           ) : (
-            <p className="mt-2 text-muted">Tap a zone on the map to see its summary.</p>
+            <p className="mt-2 text-muted">Tap a field section on the map to see its summary.</p>
           )}
           {rows.some((r) => !r.z.boundary) && (
             <p className="mt-2 text-sm text-stale">
-              {rows.filter((r) => !r.z.boundary).length} zone(s) have no map boundary yet and are not shown. Switch to List to add boundaries.
+              {rows.filter((r) => !r.z.boundary).length} field section(s) have no map boundary yet and are not shown. Switch to List to add boundaries.
             </p>
           )}
         </div>
       ) : rows.length === 0 ? (
-        <Card className="text-center text-muted">No zones match these filters.</Card>
+        <Card className="text-center text-muted">No field sections match these filters.</Card>
       ) : (
         <>
           <ul className="flex flex-col gap-3 md:hidden">
@@ -196,7 +196,7 @@ export default function Zones() {
             <table className="w-full text-left">
               <thead className="border-b border-line text-sm text-muted">
                 <tr>
-                  <th className="px-4 py-3 font-medium">Zone</th>
+                  <th className="px-4 py-3 font-medium">Field section</th>
                   <th className="px-3 py-3 font-medium">Soil · method</th>
                   <th className="px-3 py-3 font-medium">Moisture</th>
                   <th className="px-3 py-3 font-medium">Status</th>
@@ -254,7 +254,7 @@ export default function Zones() {
       )}
       {view === 'list' && rows.length > 0 && (
         <p className="flex items-center gap-2 text-sm text-muted">
-          <MapPin aria-hidden className="size-4" /> Sorted by urgency: zones that need water or a sensor check come first.
+          <MapPin aria-hidden className="size-4" /> Sorted by urgency: field sections that need water or a sensor check come first.
         </p>
       )}
     </div>

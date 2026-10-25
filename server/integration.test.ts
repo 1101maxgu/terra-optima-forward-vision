@@ -239,12 +239,12 @@ describe('GeoViva API (Postgres)', () => {
     expect(re.body.zoneId).toBe(zoneId)
   })
 
-  it('enforces Free limits and upgrades to Grower from the signed Stripe webhook', async () => {
+  it('Free has no zone or sensor cap, and the Season plan turns on from the signed Stripe webhook', async () => {
     const free = await call('GET', `/farms/${farmId}/billing`, { as: 'alice' })
-    expect(free.body).toMatchObject({ plan: 'free', sensors: 1, zones: 2, usage: { sensors: 1 } })
-    // Second connected sensor is over the Free plan; manual sources never count.
+    expect(free.body).toMatchObject({ plan: 'free', zones: null, assistant: false, textAlerts: false, usage: { sensors: 1 } })
+    // Free farms can connect more sensors (rented or their own).
     const extra = await call('POST', `/farms/${farmId}/sensors`, { as: 'alice', body: { name: 'Probe 2', deviceId: 'probe-2', type: 'lorawan' } })
-    expect(extra).toMatchObject({ status: 402, body: { error: 'plan_limit' } })
+    expect(extra.status).toBe(201)
     expect((await call('POST', `/farms/${farmId}/sensors`, { as: 'alice', body: { name: 'Hand probe', deviceId: 'hand-1', type: 'manual' } })).status).toBe(201)
 
     expect((await call('POST', `/farms/${farmId}/billing/checkout`, { as: 'bob', body: { billing: 'monthly' } })).status).toBe(404)
@@ -269,7 +269,7 @@ describe('GeoViva API (Postgres)', () => {
     expect(await sql`select count(*)::int as n from stripe_events`).toEqual([{ n: 1 }])
 
     const paid = await call('GET', `/farms/${farmId}/billing`, { as: 'alice' })
-    expect(paid.body).toMatchObject({ plan: 'grower', interval: 'year', extraSensors: 1, sensors: 4, zones: null, cancelAtPeriodEnd: false })
+    expect(paid.body).toMatchObject({ plan: 'grower', zones: null, assistant: true, textAlerts: true, cancelAtPeriodEnd: false })
     expect((await call('POST', `/farms/${farmId}/billing/checkout`, { as: 'alice', body: { billing: 'monthly' } })).status).toBe(409)
     expect((await call('POST', `/farms/${farmId}/billing/portal`, { as: 'alice' })).body.url).toBe('https://billing.stripe.test/p')
 
@@ -279,25 +279,14 @@ describe('GeoViva API (Postgres)', () => {
     expect((await call('GET', `/farms/${farmId}/billing`, { as: 'alice' })).body).toMatchObject({ plan: 'grower', cancelAtPeriodEnd: true })
   })
 
-  it('caps Free farms at 2 zones and makes zones past the limit read-only after a downgrade', async () => {
+  it('lets Free farms add as many zones as they like', async () => {
     const farm = await call('POST', '/farms', { as: 'bob', body: { name: 'Bob farm', location: '', lat: 49, lon: -122 } })
     const bobFarm = farm.body.id
     const zone = (name: string) => call('POST', `/farms/${bobFarm}/zones`, { as: 'bob', body: { name, cropId: 'lettuce', soilId: 'loam', method: 'drip', areaM2: 100 } })
-    expect((await zone('A')).status).toBe(201)
-    expect((await zone('B')).status).toBe(201)
-    expect(await zone('C')).toMatchObject({ status: 402, body: { error: 'plan_limit' } })
-
-    // Paid, add a third zone, then the subscription ends: nothing is deleted, the newest zone is read-only.
-    await sql`insert into subscriptions (farm_id, stripe_customer_id, status) values (${bobFarm}, 'cus_b', 'active')`
-    const c = await zone('C')
-    expect(c.status).toBe(201)
-    await sql`update subscriptions set status = 'canceled' where farm_id = ${bobFarm}`
+    for (const n of ['A', 'B', 'C', 'D']) expect((await zone(n)).status).toBe(201)
     const data = await call('GET', `/farms/${bobFarm}/data`, { as: 'bob' })
-    expect(data.body.zones).toHaveLength(3)
-    const reading = await call('POST', `/farms/${bobFarm}/readings/manual`, { as: 'bob', body: { zoneId: c.body.id, timestamp: '2026-10-22T11:00:00Z', soilMoisturePercent: 20 } })
-    expect(reading).toMatchObject({ status: 402, body: { error: 'plan_read_only' } })
-    const first = data.body.zones[0].id
-    expect((await call('POST', `/farms/${bobFarm}/readings/manual`, { as: 'bob', body: { zoneId: first, timestamp: '2026-10-22T11:00:00Z', soilMoisturePercent: 20 } })).status).toBe(201)
+    const last = data.body.zones[3].id
+    expect((await call('POST', `/farms/${bobFarm}/readings/manual`, { as: 'bob', body: { zoneId: last, timestamp: '2026-10-22T11:00:00Z', soilMoisturePercent: 20 } })).status).toBe(201)
   })
 
   it('provisions, claims and ingests from an ESP32', async () => {

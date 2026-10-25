@@ -94,7 +94,7 @@ export default function Help({ topic }: { topic?: string }) {
       <label className="relative block">
         <span className="sr-only">Search help</span>
         <Search aria-hidden className="pointer-events-none absolute top-1/2 left-3 size-5 -translate-y-1/2 text-muted" />
-        <input value={q} onChange={(e) => setQ(e.target.value)} type="search" placeholder="Search help, e.g. “battery” or “draw a zone”"
+        <input value={q} onChange={(e) => setQ(e.target.value)} type="search" placeholder="Search help, e.g. “battery” or “draw a field section”"
           className="h-12 w-full rounded-xl border border-line bg-surface pr-3 pl-10" />
       </label>
       {list.length === 0 ? (

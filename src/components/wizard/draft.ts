@@ -62,9 +62,9 @@ export function draftArea(d: WizardDraft): number | null {
 export function stepError(d: WizardDraft, step: number): string | null {
   if (step === 1) return d.skipBoundary ? null : validatePolygon(d.boundary)
   if (step === 2) {
-    if (!d.name.trim()) return 'Give the zone a name.'
+    if (!d.name.trim()) return 'Give the field section a name.'
     const a = draftArea(d)
-    if (!a || a <= 0) return 'Enter the zone area.'
+    if (!a || a <= 0) return 'Enter the field section area.'
     if (d.rootDepthMm !== null && !(d.rootDepthMm >= 50 && d.rootDepthMm <= 3000)) return 'Root depth should be between 50 and 3000 mm.'
     if (d.efficiencyPct !== null && !(d.efficiencyPct >= 30 && d.efficiencyPct <= 100)) return 'Efficiency should be between 30% and 100%.'
   }

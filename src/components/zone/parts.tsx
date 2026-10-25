@@ -81,7 +81,7 @@ export function ZoneForm({ zone, onSave, onDone }: { zone: Zone; onSave: (patch:
     e.preventDefault()
     const root = f.rootDepthMm.trim() ? Number(f.rootDepthMm) : undefined
     const eff = f.efficiencyPct.trim() ? Number(f.efficiencyPct) : undefined
-    if (!f.name.trim()) return setMsg({ ok: false, text: 'Give the zone a name.' })
+    if (!f.name.trim()) return setMsg({ ok: false, text: 'Give the field section a name.' })
     if (root !== undefined && !(root >= 50 && root <= 3000)) return setMsg({ ok: false, text: 'Root depth must be between 50 and 3000 mm.' })
     if (eff !== undefined && !(eff >= 30 && eff <= 100)) return setMsg({ ok: false, text: 'Efficiency must be between 30 and 100%.' })
     setBusy(true)
@@ -98,7 +98,7 @@ export function ZoneForm({ zone, onSave, onDone }: { zone: Zone; onSave: (patch:
 
   return (
     <form onSubmit={submit} className="flex flex-col gap-4">
-      <Field label="Zone name">
+      <Field label="Field section name">
         <input className={inputCls} value={f.name} onChange={(e) => set({ name: e.target.value })} required />
       </Field>
       <div className="grid gap-4 sm:grid-cols-3">

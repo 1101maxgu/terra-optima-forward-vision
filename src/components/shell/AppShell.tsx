@@ -7,7 +7,7 @@ import TopBar, { Logo } from './TopBar'
 
 const NAV = [
   { href: '/', label: 'Home', Icon: House },
-  { href: '/zones', label: 'Zones', Icon: MapIcon },
+  { href: '/zones', label: 'Field sections', Icon: MapIcon },
   { href: '/sensors', label: 'Sensors', Icon: Radio },
   { href: '/weather', label: 'Weather', Icon: CloudSun },
   { href: '/reports', label: 'Reports', Icon: ChartColumn },
@@ -17,7 +17,7 @@ const NAV = [
 ]
 const MOBILE = [
   { href: '/', label: 'Home', Icon: House, also: [] as string[] },
-  { href: '/zones', label: 'Zones', Icon: MapIcon, also: [] },
+  { href: '/zones', label: 'Fields', Icon: MapIcon, also: [] },
   { href: '/sensors', label: 'Sensors', Icon: Radio, also: [] },
   { href: '/reports', label: 'Reports', Icon: ChartColumn, also: [] },
   { href: '/settings', label: 'More', Icon: Ellipsis, also: ['/weather', '/help', '/pricing', '/account'] },

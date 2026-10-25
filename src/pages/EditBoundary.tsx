@@ -26,8 +26,8 @@ export default function EditBoundary({ zoneId }: { zoneId: string }) {
   if (!zone)
     return (
       <div className="mx-auto max-w-xl space-y-3 p-4">
-        <p className="text-lg font-semibold">This zone no longer exists.</p>
-        <a className="btn-secondary inline-flex min-h-11 items-center" href="#/zones">Back to zones</a>
+        <p className="text-lg font-semibold">This field section no longer exists.</p>
+        <a className="btn-secondary inline-flex min-h-11 items-center" href="#/zones">Back to field sections</a>
       </div>
     )
   return <Editor key={zone.id} zoneId={zone.id} />
@@ -66,7 +66,7 @@ function Editor({ zoneId }: { zoneId: string }) {
     <div className="mx-auto flex min-h-full max-w-6xl flex-col">
       <div className="space-y-3 px-4 pt-4 pb-6 sm:px-6">
         <div className="flex items-center gap-2">
-          <button type="button" onClick={back} aria-label="Back to zone" className="-ml-2 grid size-11 place-items-center rounded-full hover:bg-stale-soft">
+          <button type="button" onClick={back} aria-label="Back to field section" className="-ml-2 grid size-11 place-items-center rounded-full hover:bg-stale-soft">
             <ArrowLeft aria-hidden className="size-6" />
           </button>
           <div>
@@ -75,7 +75,7 @@ function Editor({ zoneId }: { zoneId: string }) {
           </div>
         </div>
         <p className="text-muted">
-          {initial ? 'Drag the corners to adjust the boundary.' : 'Tap each corner of the area, then tap the first corner to close it.'} A zone is a management area — it doesn't have to be a whole field.
+          {initial ? 'Drag the corners to adjust the boundary.' : 'Tap each corner of the area, then tap the first corner to close it.'} A field section is a management area — it doesn't have to be a whole field.
         </p>
         <Suspense fallback={<MapSkeleton className="h-[60vh] min-h-80" />}>
           <ZoneDrawMap className="h-[60vh] min-h-80 lg:h-[65vh]" value={initial} center={center} zoom={initial ? undefined : 16}
@@ -101,7 +101,7 @@ function Editor({ zoneId }: { zoneId: string }) {
         </div>
       </div>
       <ConfirmDialog open={confirm} title="Big change in area" confirmLabel="Save new boundary" onCancel={() => setConfirm(false)} onConfirm={save}
-        body={<>The zone area changes from <b>{formatArea(zone.areaM2)}</b> to <b>{valid ? formatArea(draft.area!) : '—'}</b>. Watering amounts in litres will change to match. Save anyway?</>} />
+        body={<>The field section area changes from <b>{formatArea(zone.areaM2)}</b> to <b>{valid ? formatArea(draft.area!) : '—'}</b>. Watering amounts in litres will change to match. Save anyway?</>} />
     </div>
   )
 }
