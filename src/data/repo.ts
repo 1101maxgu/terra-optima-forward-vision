@@ -50,7 +50,7 @@ export function localRepository(dataset: Dataset): FarmRepository {
     if (cache) return cache
     let stored: Stored | null = null
     try {
-      const raw = localStorage.getItem(key(dataset))
+      const raw = sessionStorage.getItem(key(dataset))
       stored = raw ? (JSON.parse(raw) as Stored) : null
     } catch {
       stored = null
@@ -64,7 +64,7 @@ export function localRepository(dataset: Dataset): FarmRepository {
   // Throws if storage is unavailable/full so callers can show Retry and keep unsaved input.
   function write(next: FarmData) {
     const savedAt = dataset === 'sample' ? clockAt : Date.now()
-    localStorage.setItem(key(dataset), JSON.stringify({ savedAt, data: next } satisfies Stored))
+    sessionStorage.setItem(key(dataset), JSON.stringify({ savedAt, data: next } satisfies Stored))
     cache = next
   }
 
@@ -111,7 +111,7 @@ export function localRepository(dataset: Dataset): FarmRepository {
 /** Resets the sample farm to its generated state (does not touch 'mine'). */
 export function resetSample() {
   try {
-    localStorage.removeItem(key('sample'))
+    sessionStorage.removeItem(key('sample'))
   } catch {
     /* nothing stored */
   }

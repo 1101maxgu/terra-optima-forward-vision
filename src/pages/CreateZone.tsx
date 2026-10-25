@@ -1,4 +1,4 @@
-// Route: #/zones/new — five-step Create Zone wizard (refs 02–07). The draft autosaves to localStorage.
+// Route: #/zones/new — five-step Create Zone wizard (refs 02–07). The draft autosaves to sessionStorage (cleared when the tab closes).
 import { useEffect, useRef, useState } from 'react'
 import { ArrowLeft, ArrowRight, Check, CheckCircle2, History, Loader2, Sprout } from 'lucide-react'
 import type { Zone } from '../types'
@@ -25,15 +25,15 @@ const NEXT = ['Draw field section', 'Field details', 'Connect sensors', 'Review'
 
 function readStoredDraft(): WizardDraft | null {
   try {
-    return parseDraft(localStorage.getItem(DRAFT_KEY))
+    return parseDraft(sessionStorage.getItem(DRAFT_KEY))
   } catch {
     return null
   }
 }
 function writeDraft(d: WizardDraft | null) {
   try {
-    if (d) localStorage.setItem(DRAFT_KEY, serializeDraft(d))
-    else localStorage.removeItem(DRAFT_KEY)
+    if (d) sessionStorage.setItem(DRAFT_KEY, serializeDraft(d))
+    else sessionStorage.removeItem(DRAFT_KEY)
   } catch {
     /* storage unavailable: the wizard still works in memory */
   }

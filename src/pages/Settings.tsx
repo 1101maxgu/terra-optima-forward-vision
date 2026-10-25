@@ -71,7 +71,7 @@ function FarmDetails() {
   )
 }
 
-/** Baseline schedule and cost assumptions behind Reports > Outcomes. Saved on this device. */
+/** Baseline schedule and cost assumptions behind Reports > Outcomes. Kept until the tab is closed. */
 function OutcomeAssumptions() {
   const { outcomeSettings, setOutcomeSettings } = useFarm()
   const [draft, setDraft] = useState<OutcomeSettings>(outcomeSettings)
@@ -161,7 +161,7 @@ export default function Settings() {
           onChange={setDataset}
           options={[
             { v: 'sample', title: 'Sample farm', desc: 'A fictional farm with simulated sensors, for trying GeoViva out.' },
-            { v: 'mine', title: 'My farm', desc: 'Your own field sections, sensors and readings, saved on this device.' },
+            { v: 'mine', title: 'My farm', desc: 'Your own field sections, sensors and readings, kept until you close this tab.' },
           ]}
         />
         {dataset === 'sample' && (
@@ -201,7 +201,7 @@ export default function Settings() {
 
       <Card>
         <h2 className="text-xl font-bold">Costs and baseline</h2>
-        <p className="mt-1 mb-4 text-muted">Used for the outcomes on Reports. Defaults are rough; replace them with your own bill and pump figures. Saved on this device.</p>
+        <p className="mt-1 mb-4 text-muted">Used for the outcomes on Reports. Defaults are rough; replace them with your own bill and pump figures. Kept until you close this tab.</p>
         <OutcomeAssumptions />
       </Card>
 

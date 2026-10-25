@@ -301,7 +301,7 @@ export const TOPICS: Topic[] = [
       },
       {
         heading: 'Where your data lives',
-        body: 'Until your farm account is set up, your farm information is stored in this browser on this device. If you clear the browser’s data or switch devices, it will not come with you. The Sample farm is fictional and is never mixed with your own data.',
+        body: 'Until your farm account is set up, your farm information is kept only in this browser tab. It stays if you reload the page, and it is erased when you close the tab, so nothing is left behind on a shared computer. The Sample farm is fictional and is never mixed with your own data.',
       },
     ],
   },

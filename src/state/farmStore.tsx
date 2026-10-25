@@ -66,7 +66,7 @@ export function cleanOutcomeSettings(p: unknown): OutcomeSettings {
 }
 function loadUi(): UiPrefs {
   try {
-    const raw = localStorage.getItem(UI_KEY)
+    const raw = sessionStorage.getItem(UI_KEY)
     const p = raw ? JSON.parse(raw) : {}
     // Only known keys: older builds stored demo overrides here, which must not leak into statuses.
     return {
@@ -110,7 +110,7 @@ function useFarmState() {
 
   useEffect(() => {
     try {
-      localStorage.setItem(UI_KEY, JSON.stringify(ui))
+      sessionStorage.setItem(UI_KEY, JSON.stringify(ui))
     } catch {
       /* storage unavailable: prefs still work in memory */
     }
