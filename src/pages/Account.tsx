@@ -140,7 +140,7 @@ export default function Account() {
       {!auth.configured ? (
         <Card>
           <h2 className="text-xl font-bold">Accounts are coming soon</h2>
-          <p className="mt-1 text-muted">For now your farm is saved on this device and uses the Free plan. Sign-in and paid plans switch on once GeoViva’s server is set up.</p>
+          <p className="mt-1 text-muted">For now your farm is kept only in this browser tab, until you close it, and uses the Free plan. Sign-in and paid plans switch on once GeoViva’s server is set up.</p>
           <a href="#/pricing" className="btn-secondary mt-4 inline-flex min-h-11 items-center">See plans and pricing</a>
         </Card>
       ) : !auth.ready ? (
@@ -169,7 +169,7 @@ export default function Account() {
           ) : billingAvailable() ? (
             <PlanCard />
           ) : (
-            <Card><p className="text-muted">Your farm is saved on this device and uses the Free plan. Paid plans need GeoViva’s server, which isn’t set up yet.</p></Card>
+            <Card><p className="text-muted">Your farm is kept only in this browser tab, until you close it, and uses the Free plan. Paid plans need GeoViva’s server, which isn’t set up yet.</p></Card>
           )}
         </>
       )}

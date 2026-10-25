@@ -32,7 +32,7 @@ const visible = (name: string) =>
 export default function Tour() {
   const [step, setStep] = useState<number | null>(() => {
     try {
-      return localStorage.getItem(DONE_KEY) ? null : 0
+      return sessionStorage.getItem(DONE_KEY) ? null : 0
     } catch {
       return null // storage blocked: don't nag on every load
     }
@@ -43,7 +43,7 @@ export default function Tour() {
   const finish = useCallback(() => {
     setStep(null)
     try {
-      localStorage.setItem(DONE_KEY, '1')
+      sessionStorage.setItem(DONE_KEY, '1')
     } catch {
       /* storage unavailable */
     }
