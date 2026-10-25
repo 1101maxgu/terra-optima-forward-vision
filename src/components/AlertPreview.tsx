@@ -1,21 +1,31 @@
 // A phone-style preview of the text alerts that come with the Season plan. Nothing is sent: the messages are
 // written from the farm's own watering advice and clearly labelled "Preview".
 import { MessageSquareText } from 'lucide-react'
-import { useFarm } from '../state/farmStore'
+import { useFarm, type ZoneStatus } from '../state/farmStore'
+import type { Zone } from '../types'
+import { shortName } from '../ui/farm'
+import { runText } from '../data/methods'
+import { splitSessions } from '../engine/irrigation'
 import { fmtPct } from '../ui/kit'
 import { money, SEASON } from '../pricing/plans'
 
-export default function AlertPreview() {
-  const { farm, zones, zoneStatus, limits } = useFarm()
-  const texts = zones.flatMap((z) => {
+/** The text messages GeoViva would send right now, written from each field's watering advice. */
+export function buildAlertTexts(zones: Zone[], zoneStatus: (id: string) => ZoneStatus, text: (s: string) => string = (s) => s): string[] {
+  const out = zones.flatMap((z) => {
     const st = zoneStatus(z.id)
     const m = fmtPct(st.moisturePct)
-    if (st.status === 'water-today') return [`${z.name} is too dry (${m}). Water today.`]
-    if (st.status === 'water-soon') return [`${z.name} is getting dry (${m}). Plan to water in the next 2 days.`]
-    if (st.status === 'check-sensor') return [`The sensor in ${z.name} may be off. Please take a look.`]
+    const name = shortName(z.name)
+    if (st.status === 'water-today') return [`${name} is too dry (${m}). Water today${st.rec ? `: ${runText(st.rec.grossMm, z.method, splitSessions(st.rec.grossMm, z.areaM2).sessions).toLowerCase()}` : ''}.`]
+    if (st.status === 'water-soon') return [`${name} is getting dry (${m}). Plan to water in the next 2 days.`]
+    if (st.status === 'check-sensor') return [`The sensor in ${name} may not be working. Please take a look.`]
     return []
-  }).slice(0, 3)
-  if (!texts.length) texts.push('Good news: nothing needs water today.')
+  }).slice(0, 3).map(text)
+  return out.length ? out : ['Good news: nothing needs water today.']
+}
+
+export default function AlertPreview() {
+  const { farm, zones, zoneStatus, limits } = useFarm()
+  const texts = buildAlertTexts(zones, zoneStatus)
   const locked = limits !== null && !limits.textAlerts
 
   return (

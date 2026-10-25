@@ -3,8 +3,10 @@ import { useFarm } from '../state/farmStore'
 import { dayLabel } from '../components/WeatherStrip'
 import { Card, PageHeader } from '../ui/kit'
 import { dayLook } from '../ui/widgets'
+import { useUnits } from '../ui/units'
 
 export default function Weather() {
+  const u = useUnits()
   const { farm, weather, weatherLabel, weatherMode, setWeatherMode } = useFarm()
   const days = weather.days.slice(0, 7)
   const rain48 = weather.days.slice(0, 2).reduce((t, d) => t + Math.max(0, d.rainMm), 0)
@@ -35,7 +37,7 @@ export default function Weather() {
       )}
       {rain48 >= 10 && (
         <p className="flex items-center gap-2 rounded-xl border border-water/30 bg-water-soft px-4 py-3 font-semibold text-water">
-          <CloudRain aria-hidden className="size-5" /> About {Math.round(rain48)} mm of rain in the next 48 h. Recommendations already account for it.
+          <CloudRain aria-hidden className="size-5" /> About {u.depth(Math.round(rain48))} of rain in the next 48 h. Recommendations already account for it.
         </p>
       )}
       <ol className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-7">
@@ -52,14 +54,14 @@ export default function Weather() {
                 </div>
                 <div className="text-sm">{word}</div>
                 <div className="mt-1 text-sm text-muted tabular-nums">
-                  Rain {d.rainMm.toFixed(0)} mm · Dry-out {d.et0Mm.toFixed(1)} mm
+                  Rain {u.depth(Math.round(d.rainMm))} · Dry-out {u.depth(Math.round(d.et0Mm * 10) / 10)}
                 </div>
               </Card>
             </li>
           )
         })}
       </ol>
-      <p className="text-sm text-muted">Dry-out is how much water the sun and wind pull from the soil that day, in mm. A higher number means your crops dry out faster.</p>
+      <p className="text-sm text-muted">Dry-out is how much water the sun and wind pull from the soil that day. A higher number means your crops dry out faster.</p>
     </div>
   )
 }

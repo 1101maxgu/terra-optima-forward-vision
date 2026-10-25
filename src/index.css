@@ -71,3 +71,8 @@ input[type='range'] {
     @apply rounded-xl border border-line bg-surface px-3 py-2 font-semibold text-ink transition hover:border-forest active:scale-[0.98];
   }
 }
+
+@keyframes slide-down {
+  from { transform: translateY(-120%); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}

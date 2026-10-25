@@ -3,12 +3,13 @@ import { CartesianGrid, Legend, Line, LineChart, ReferenceLine, ResponsiveContai
 import { Droplets, Gauge } from 'lucide-react'
 import type { Zone } from '../../types'
 import { useFarm, type ZoneStatus } from '../../state/farmStore'
-import { Card, fmtLitres, timeAgo } from '../../ui/kit'
+import { Card, timeAgo } from '../../ui/kit'
 import { SOILS } from '../../data/soils'
 import ProvenanceBadge from '../ProvenanceBadge'
 import { Field, inputCls } from './parts'
 import { chartRows, historyTimeline, litresToMm, mmToLitres } from './helpers'
 import { RecommendationCard } from './Overview'
+import { useUnits } from '../../ui/units'
 
 const H2 = 'text-lg font-bold'
 const SERIES = ['#2a78d6', '#eb6834', '#1baf7a', '#6250d6'] // validated categorical order (dataviz reference palette)
@@ -108,6 +109,7 @@ export function MoistureTab({ zone, zs }: { zone: Zone; zs: ZoneStatus }) {
 }
 
 export function IrrigationTab({ zone, zs, onAddReading }: { zone: Zone; zs: ZoneStatus; onAddReading: () => void }) {
+  const u = useUnits()
   const { events, logIrrigation } = useFarm()
   const [unit, setUnit] = useState<'mm' | 'L'>('mm')
   const [amount, setAmount] = useState('')
@@ -156,7 +158,7 @@ export function IrrigationTab({ zone, zs, onAddReading }: { zone: Zone; zs: Zone
               </div>
             </div>
             <p className="text-sm text-muted" aria-live="polite">
-              {valid ? <>= <b className="text-ink">{mm} mm</b> over {zone.areaM2.toLocaleString('en-CA')} m² = <b className="text-ink">{fmtLitres(litres)}</b></> : '1 mm over 1 m² is 1 litre.'}
+              {valid ? <>= <b className="text-ink">{mm} mm</b> over {zone.areaM2.toLocaleString('en-CA')} m² = <b className="text-ink">{u.volume(litres)}</b></> : '1 mm over 1 m² is 1 litre.'}
             </p>
             <Field label="Note (optional)">
               <input className={inputCls} value={note} onChange={(e) => setNote(e.target.value)} placeholder="e.g. Ran drip 2 h" />
@@ -174,7 +176,7 @@ export function IrrigationTab({ zone, zs, onAddReading }: { zone: Zone; zs: Zone
               {past.slice(0, 10).map((e) => (
                 <li key={e.id} className="flex flex-wrap items-baseline gap-x-3 py-3">
                   <span className="font-semibold">{fmtDate(e.timestamp)}</span>
-                  <span className="tabular-nums">{e.mm} mm · {fmtLitres(e.litres)}</span>
+                  <span className="tabular-nums">{u.depth(e.mm)} · {u.volume(e.litres)}</span>
                   <span className="text-sm text-muted">{timeAgo(e.timestamp)}{e.source === 'sample' ? ' · sample' : ''}</span>
                   {e.note && <span className="w-full text-sm text-muted">{e.note}</span>}
                 </li>
@@ -189,6 +191,7 @@ export function IrrigationTab({ zone, zs, onAddReading }: { zone: Zone; zs: Zone
 }
 
 export function WeatherTab() {
+  const u = useUnits()
   const { weather, weatherLabel } = useFarm()
   return (
     <Card>
@@ -201,8 +204,8 @@ export function WeatherTab() {
           <li key={d.date} className="flex items-center justify-between gap-3 rounded-xl border border-line p-3 lg:flex-col lg:items-start">
             <span className="font-semibold">{i === 0 ? 'Today' : fmtDate(`${d.date}T12:00`)}</span>
             <span className="tabular-nums"><b>{Math.round(d.tMaxC)}°</b> <span className="text-muted">/ {Math.round(d.tMinC)}°</span></span>
-            <span className="flex items-center gap-1 tabular-nums text-water"><Droplets className="size-4" aria-hidden />{Math.round(d.rainMm * 10) / 10} mm</span>
-            <span className="flex items-center gap-1 text-sm tabular-nums text-muted" title="How fast the soil dries out"><Gauge className="size-4" aria-hidden />Dry-out {Math.round(d.et0Mm * 10) / 10} mm</span>
+            <span className="flex items-center gap-1 tabular-nums text-water"><Droplets className="size-4" aria-hidden />{u.depth(Math.round(d.rainMm * 10) / 10)}</span>
+            <span className="flex items-center gap-1 text-sm tabular-nums text-muted" title="How fast the soil dries out"><Gauge className="size-4" aria-hidden />Dry-out {u.depth(Math.round(d.et0Mm * 10) / 10)}</span>
           </li>
         ))}
       </ul>
@@ -212,6 +215,7 @@ export function WeatherTab() {
 }
 
 export function HistoryTab({ zone }: { zone: Zone }) {
+  const u = useUnits()
   const { readings, events } = useFarm()
   const items = useMemo(
     () => historyTimeline(readings.filter((r) => r.zoneId === zone.id), events.filter((e) => e.zoneId === zone.id)).slice(0, 60),
@@ -229,7 +233,7 @@ export function HistoryTab({ zone }: { zone: Zone }) {
               <li key={`e-${it.event.id}`} className="flex gap-3 rounded-xl bg-water-soft p-3">
                 <Droplets className="mt-0.5 size-5 shrink-0 text-water" aria-hidden />
                 <div>
-                  <p><b>Irrigated {it.event.mm} mm</b> · {fmtLitres(it.event.litres)}</p>
+                  <p><b>Irrigated {u.depth(it.event.mm)}</b> · {u.volume(it.event.litres)}</p>
                   <p className="text-sm text-muted">{fmtDate(it.event.timestamp)}{it.event.note ? ` · ${it.event.note}` : ''}{it.event.source === 'sample' ? ' · sample' : ''}</p>
                 </div>
               </li>

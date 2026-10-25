@@ -1,11 +1,10 @@
 import { useEffect, useState } from 'react'
-import { Play, RotateCcw } from 'lucide-react'
+import { RotateCcw } from 'lucide-react'
 import { OUTCOME_DEFAULTS, useFarm, type OutcomeSettings } from '../state/farmStore'
 import { COST_META, type CostAssumptions } from '../engine/outcomes'
 import CsvImport from '../components/CsvImport'
 import AlertPreview from '../components/AlertPreview'
 import Luke from '../guide/Luke'
-import { startTour } from '../guide/Tour'
 import { Card, PageHeader } from '../ui/kit'
 
 const input = 'h-12 w-full rounded-xl border border-line bg-surface px-3'
@@ -132,7 +131,7 @@ function OutcomeAssumptions() {
 }
 
 export default function Settings() {
-  const { dataset, setDataset, resetDemo, weatherMode, setWeatherMode } = useFarm()
+  const { dataset, setDataset, resetDemo, weatherMode, setWeatherMode, units, setUnits } = useFarm()
   return (
     <div className="flex flex-col gap-5">
       <PageHeader title="Settings" />
@@ -146,9 +145,6 @@ export default function Settings() {
         <div className="flex flex-wrap gap-2">
           <a href="#/help" className="btn-primary inline-flex min-h-12 items-center">Open Help</a>
           <a href="#/pricing" className="btn-secondary inline-flex min-h-12 items-center">Plans and pricing</a>
-          <button type="button" onClick={startTour} className="btn-secondary inline-flex min-h-12 items-center gap-2">
-            <Play aria-hidden className="size-5" /> Replay tour
-          </button>
         </div>
       </Card>
 
@@ -173,6 +169,20 @@ export default function Settings() {
             <RotateCcw aria-hidden className="size-5" /> Reset sample farm
           </button>
         )}
+      </Card>
+
+      <Card>
+        <h2 className="text-xl font-bold">Units</h2>
+        <p className="mt-1 mb-4 text-muted">How water amounts and field sizes are shown everywhere in the app.</p>
+        <Choice
+          name="units"
+          value={units}
+          onChange={setUnits}
+          options={[
+            { v: 'metric', title: 'Metric', desc: 'Millimetres, litres and hectares.' },
+            { v: 'imperial', title: 'Acres and gallons', desc: 'Inches, US gallons and acres.' },
+          ]}
+        />
       </Card>
 
       <Card>

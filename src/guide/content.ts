@@ -207,7 +207,7 @@ export const TOPICS: Topic[] = [
         steps: [
           'Choose a spot that is typical of the field section, not the wettest corner or next to a drip emitter or sprinkler.',
           'One sensor per field section is the minimum. Field sections with mixed soil need more, or should be split.',
-          'Put it in the crop’s root field section. The app records the depth, 15 cm by default for the Wi-Fi sensor.',
+          'Put it where the crop’s roots are. The app records the depth, 15 cm by default for the Wi-Fi sensor.',
           'Keep it within signal range: Wi-Fi sensors need Wi-Fi, LoRaWAN sensors need a gateway.',
         ],
       },

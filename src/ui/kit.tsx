@@ -68,7 +68,7 @@ export function PageHeader({ title, subtitle, actions, help }: { title: string; 
 export function SampleBanner() {
   return (
     <p className="rounded-xl border border-sun/40 bg-sun-soft px-4 py-2 text-sm text-ink">
-      <span className="font-semibold">Sample farm</span> — a fictional farm with simulated sensors. Tap “Back to my farm” to use your own data.
+      <span className="font-semibold">Demo farm.</span> A pretend farm to explore. Nothing you change is kept.
     </p>
   )
 }

@@ -6,11 +6,11 @@ import { openLuke } from '../guide/LukeChat'
 import { useFarm } from '../state/farmStore'
 import type { CropId, FarmerStatus, Zone } from '../types'
 import { FarmMap, MapSkeleton } from '../map'
-import { formatArea } from '../map/geo'
 import { CROPS } from '../data/crops'
 import { SOILS } from '../data/soils'
 import { Card, FreshnessText, PageHeader, STATUS, StatusPill, fmtPct } from '../ui/kit'
-import { CROP_EMOJI, STATUS_RANK } from '../ui/farm'
+import { CROP_EMOJI, STATUS_RANK, shortName } from '../ui/farm'
+import { useUnits } from '../ui/units'
 
 const select = 'h-12 rounded-xl border border-line bg-surface px-3'
 
@@ -26,6 +26,7 @@ function NoBoundary({ z }: { z: Zone }) {
 }
 
 export default function Zones() {
+  const u = useUnits()
   const { farm, zones, sensors, zoneStatus, limits } = useFarm()
   const atZoneLimit = limits?.zones != null && zones.length >= limits.zones
   const [view, setView] = useState<'list' | 'map'>('list')
@@ -134,7 +135,7 @@ export default function Zones() {
                 <div className="min-w-0 flex-1">
                   <div className="text-lg font-bold">{sel.z.name}</div>
                   <div className="text-muted">
-                    {CROPS[sel.z.cropId].name} · {formatArea(sel.z.areaM2)} · {fmtPct(sel.st.moisturePct)} moisture
+                    {CROPS[sel.z.cropId].name} · {u.area(sel.z.areaM2)} · {fmtPct(sel.st.moisturePct)} moisture
                   </div>
                 </div>
                 <button type="button" onClick={() => setSelected(null)} aria-label="Close" className="grid size-10 place-items-center rounded-lg hover:bg-paper">
@@ -170,9 +171,9 @@ export default function Zones() {
                       {CROP_EMOJI[z.cropId]}
                     </span>
                     <span className="min-w-0 flex-1">
-                      <span className="block text-lg font-bold">{z.name}</span>
+                      <span className="block text-lg font-bold">{shortName(z.name)}</span>
                       <span className="block text-muted">
-                        {CROPS[z.cropId].name} · {formatArea(z.areaM2)}
+                        {CROPS[z.cropId].name} · {u.area(z.areaM2)}
                       </span>
                     </span>
                     <span className="text-2xl font-bold tabular-nums">{fmtPct(st.moisturePct)}</span>
@@ -218,7 +219,7 @@ export default function Zones() {
                             {z.name}
                           </a>
                           <div className="text-sm text-muted">
-                            {CROPS[z.cropId].name} · {formatArea(z.areaM2)}
+                            {CROPS[z.cropId].name} · {u.area(z.areaM2)}
                           </div>
                           {!z.boundary && <NoBoundary z={z} />}
                         </div>
