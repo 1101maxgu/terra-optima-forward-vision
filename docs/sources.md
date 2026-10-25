@@ -34,4 +34,5 @@ Each θ falls within the FAO T19 range and is chosen so that available water (θ
 - **Application efficiency**: drip 0.90, sprinkler 0.75. These are the PRD's typical values and fall within the commonly cited ranges (drip 85–95%, sprinkler 70–80%). Not verified against a specific BC table.
 - **Effective rain**: 0 below 3 mm, otherwise 80%. This is a simple PRD rule of thumb, not a FAO or BC formula.
 - **Default ET0**: 4.5 mm/day, used when the forecast is short or ET0 is missing/NaN. It is an assumed typical Fraser Valley mid-summer value, consistent with the bundled sample weather (3.2–6.2 mm/day). It is not a published normal.
+- **Run time** (`src/data/methods.ts`): "run your system for about N hours" uses typical application rates of drip 3 mm/h and sprinkler 10 mm/h. These are assumed typical values, not from a cited table, and should be replaced by each farm's measured rate.
 - **Timing advice**: water early morning or evening to reduce evaporation. This is standard practice, given as text only.
