@@ -39,7 +39,6 @@ export default function LukeLauncher({ path, hidden }: { path: string; hidden?: 
         type="button"
         onClick={() => setOpen(true)}
         aria-label="Ask Luke, the help assistant"
-        data-tour="luke"
         className={`fixed right-4 bottom-20 z-30 size-14 place-items-center rounded-full border border-line bg-surface shadow-lg transition hover:scale-105 md:right-6 md:bottom-6 ${hidden ? 'hidden md:grid' : 'grid'}`}
       >
         <Luke className="size-11" />
