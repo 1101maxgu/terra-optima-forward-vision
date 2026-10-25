@@ -5,7 +5,8 @@ import { AlertTriangle, History, TrendingDown } from 'lucide-react'
 import { useFarm } from '../state/farmStore'
 import { compareHistory, type Outcome } from '../engine/outcomes'
 import { useProjection } from '../ui/farm'
-import { Card, fmtLitres } from '../ui/kit'
+import { Card } from '../ui/kit'
+import { useUnits } from '../ui/units'
 import { SectionTitle } from '../ui/widgets'
 import ProvenanceBadge from './ProvenanceBadge'
 import { confidenceWord } from './TrustBadge'
@@ -19,12 +20,13 @@ const plural = (n: number, w: string) => `${n} ${w}${Math.abs(n) === 1 ? '' : 's
 const less = (n: number, fmt: (x: number) => string, word = 'less') => (n >= 0 ? `${fmt(n)} ${word}` : `${fmt(-n)} more`)
 
 function Headline({ saved, base }: { saved: Outcome; base: Outcome }) {
+  const u = useUnits()
   const p = pct(saved.litres, base.litres)
   return (
     <dl className="grid gap-3 sm:grid-cols-3">
       <div className="rounded-xl bg-water-soft p-3">
         <dt className="text-sm text-muted">Water</dt>
-        <dd className="text-2xl font-bold tabular-nums text-water">{less(saved.litres, fmtLitres)}</dd>
+        <dd className="text-2xl font-bold tabular-nums text-water">{less(saved.litres, u.volume)}</dd>
         {p !== null && <dd className="text-sm text-muted">{p >= 0 ? `${p}% less` : `${-p}% more`} than the baseline</dd>}
       </div>
       <div className="rounded-xl bg-leaf-soft p-3">
@@ -54,6 +56,7 @@ function CostLine({ saved }: { saved: Outcome }) {
 }
 
 export function ProjectionCard() {
+  const u = useUnits()
   const { outcomeSettings, zones } = useFarm()
   const p = useProjection()
   const nameOf = (id: string) => zones.find((z) => z.id === id)?.name ?? id
@@ -63,7 +66,7 @@ export function ProjectionCard() {
     <Card>
       <SectionTitle icon={<TrendingDown aria-hidden className="size-5 text-water" />} title="Next 14 days: following GeoViva vs a fixed schedule" action={<ProvenanceBadge p="projected" />} />
       <p className="mb-3 text-muted">
-        Baseline: {mmPerEvent} mm, {eventsPerWeek}× a week in every field section. This is a model of the weeks ahead, not a measured result.{' '}
+        Baseline: {u.depth(mmPerEvent)}, {eventsPerWeek}× a week in every field section. This is a model of the weeks ahead, not a measured result.{' '}
         <a href="#/settings" className="font-semibold text-water underline">Change baseline</a>
       </p>
       {p.zones.length === 0 ? (
@@ -79,9 +82,9 @@ export function ProjectionCard() {
             {p.zones.map((z) => (
               <li key={z.zoneId} className="flex flex-wrap items-baseline gap-x-4 gap-y-1 py-2">
                 <span className="min-w-36 font-semibold">{nameOf(z.zoneId)}</span>
-                <span className="tabular-nums">{fmtLitres(z.geoviva.litres)} <span className="text-muted">vs {fmtLitres(z.baseline.litres)}</span></span>
+                <span className="tabular-nums">{u.volume(z.geoviva.litres)} <span className="text-muted">vs {u.volume(z.baseline.litres)}</span></span>
                 <span className="tabular-nums text-muted">{plural(z.geoviva.events, 'watering')} vs {z.baseline.events}</span>
-                <span className="tabular-nums sm:ml-auto">{less(z.saved.litres, fmtLitres)}</span>
+                <span className="tabular-nums sm:ml-auto">{less(z.saved.litres, u.volume)}</span>
                 {z.baselineStressDays > 0 && (
                   <span className="w-full text-muted">
                     The fixed schedule would leave this field section below its refill point (crop stress) on {z.baselineStressDays} of {z.days} days
@@ -105,6 +108,7 @@ export function ProjectionCard() {
 }
 
 export function HistoryCard({ days }: { days: number }) {
+  const u = useUnits()
   const { zones, events, dataset, outcomeSettings } = useFarm()
   const h = useMemo(
     () => compareHistory(events, zones, days, Date.now(), outcomeSettings.schedule, outcomeSettings.costs),
@@ -131,13 +135,13 @@ export function HistoryCard({ days }: { days: number }) {
             ] satisfies { label: string; o: Outcome }[]).map(({ label, o }) => (
               <div key={label} className="rounded-xl border border-line p-3">
                 <dt className="text-sm text-muted">{label}</dt>
-                <dd className="text-xl font-bold tabular-nums">{fmtLitres(o.litres)}</dd>
+                <dd className="text-xl font-bold tabular-nums">{u.volume(o.litres)}</dd>
                 <dd className="text-sm text-muted tabular-nums">{plural(o.events, 'watering')} · {fmtH(o.labourH)} · {fmtMoney(o.cost.total)}</dd>
               </div>
             ))}
           </dl>
           <p className="mt-3 text-sm">
-            Compared with the previous {days} days: <b>{less(saved.litres, fmtLitres)}</b> water, <b>{saved.events >= 0 ? `${plural(saved.events, 'watering')} fewer` : `${plural(-saved.events, 'watering')} more`}</b>.
+            Compared with the previous {days} days: <b>{less(saved.litres, u.volume)}</b> water, <b>{saved.events >= 0 ? `${plural(saved.events, 'watering')} fewer` : `${plural(-saved.events, 'watering')} more`}</b>.
           </p>
         </>
       )}
