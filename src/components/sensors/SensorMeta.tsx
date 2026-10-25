@@ -19,7 +19,7 @@ export function ConnectivityBadge({ sensor }: { sensor: Sensor }) {
     return <Badge cls="bg-stale-soft text-muted border-line" icon={<PencilLine aria-hidden className="size-4" />}>Manual entry</Badge>
   const st = sensorState(sensor)
   if (st === 'online') return <Badge cls="bg-leaf-soft text-leaf border-leaf/30" icon={<Wifi aria-hidden className="size-4" />}>Online</Badge>
-  if (st === 'offline') return <Badge cls="bg-stale-soft text-stale border-stale/30" icon={<WifiOff aria-hidden className="size-4" />}>Offline</Badge>
+  if (st === 'offline') return <Badge cls="bg-stale-soft text-stale border-stale/30" icon={<WifiOff aria-hidden className="size-4" />}>Not reporting</Badge>
   return <Badge cls="bg-stale-soft text-stale border-stale/30" icon={<CircleSlash aria-hidden className="size-4" />}>Not connected yet</Badge>
 }
 
